@@ -1,34 +1,4 @@
 --
--- PostgreSQL database dump
---
-
-SET statement_timeout = 0;
-SET client_encoding = 'UTF8';
-SET standard_conforming_strings = on;
-SET check_function_bodies = false;
-SET client_min_messages = warning;
-
---
--- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
---
-
-CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
-
-
---
--- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
---
-
-COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
-
-
-SET search_path = public, pg_catalog;
-
-SET default_tablespace = '';
-
-SET default_with_oids = false;
-
---
 -- Name: routes; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -44,9 +14,6 @@ CREATE TABLE routes (
     route_text_color character(6)
 );
 
-
-ALTER TABLE public.routes OWNER TO postgres;
-
 --
 -- Name: shapes; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
@@ -57,9 +24,6 @@ CREATE TABLE shapes (
     shape_sequence integer,
     shape_dist_traveled integer
 );
-
-
-ALTER TABLE public.shapes OWNER TO postgres;
 
 --
 -- Name: stops; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
@@ -77,9 +41,6 @@ CREATE TABLE stops (
     parent_station character(7)
 );
 
-
-ALTER TABLE public.stops OWNER TO postgres;
-
 --
 -- Name: trips; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
@@ -93,9 +54,6 @@ CREATE TABLE trips (
     block_id character(100),
     shape_id character(7)
 );
-
-
-ALTER TABLE public.trips OWNER TO postgres;
 
 --
 -- Data for Name: routes; Type: TABLE DATA; Schema: public; Owner: postgres
@@ -24743,6 +24701,46 @@ REVOKE ALL ON SCHEMA public FROM PUBLIC;
 REVOKE ALL ON SCHEMA public FROM postgres;
 GRANT ALL ON SCHEMA public TO postgres;
 GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+--
+-- Name: routes; Type: ACL; Schema: public; Owner: postgres
+--
+
+REVOKE ALL ON TABLE routes FROM PUBLIC;
+REVOKE ALL ON TABLE routes FROM postgres;
+GRANT ALL ON TABLE routes TO postgres;
+GRANT SELECT ON TABLE routes TO ma3map;
+
+
+--
+-- Name: shapes; Type: ACL; Schema: public; Owner: postgres
+--
+
+REVOKE ALL ON TABLE shapes FROM PUBLIC;
+REVOKE ALL ON TABLE shapes FROM postgres;
+GRANT ALL ON TABLE shapes TO postgres;
+GRANT SELECT ON TABLE shapes TO ma3map;
+
+
+--
+-- Name: stops; Type: ACL; Schema: public; Owner: postgres
+--
+
+REVOKE ALL ON TABLE stops FROM PUBLIC;
+REVOKE ALL ON TABLE stops FROM postgres;
+GRANT ALL ON TABLE stops TO postgres;
+GRANT SELECT ON TABLE stops TO ma3map;
+
+
+--
+-- Name: trips; Type: ACL; Schema: public; Owner: postgres
+--
+
+REVOKE ALL ON TABLE trips FROM PUBLIC;
+REVOKE ALL ON TABLE trips FROM postgres;
+GRANT ALL ON TABLE trips TO postgres;
+GRANT SELECT ON TABLE trips TO ma3map;
 
 
 --
