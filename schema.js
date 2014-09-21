@@ -1,5 +1,5 @@
 var FS = require("fs");
-FS.readFile('data/gis/ma3map.sql', 'utf8', function(err, dump){
+FS.readFile('./data/gis/ma3map.sql', 'utf8', function(err, dump){
    if(err){
       return console.error(err);
    }
