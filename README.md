@@ -13,10 +13,11 @@ Setting up nodejs:
     apt-get install postgresql-server-dev-9.1
     npm install pg
 
+
 Running the server (make sure your are still in the server dir)
 
-    node schema.js
     npm start
+
 
 Deploying on heroku:
 
@@ -24,6 +25,7 @@ Deploying on heroku:
     git push heroku master
     heroku open
     heroku logs --tail
+
 
 ### Database
 As you might have noticed in the server deployment, we are not deploying any database. Instead we do the deployment manually using psql and a database dump. The deployed database is readable from anywhere in the interwebs but if you want to deploy your own database use the following commands:
