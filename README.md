@@ -21,6 +21,14 @@ Deploying on heroku:
 
    heroku create --stack cedar ma3map
    git push heroku master
-   heroku addons:add heroku-postgresql:hobby-dev
-   heroku run node schema.js
    heroku open
+
+### Database
+As you might have noticed in the server deployment, we are not deploying any database. Instead we do the deployment manually using psql and a database dump. The deployed database is readable from anywhere in the interwebs but if you want to deploy your own database use the following commands:
+
+    cd data/gis/clean
+    chmod a+x ma3map.sql
+    psql -h {host} -p {port} -U {username} -W<ma3map.sql
+    cd ../../
+
+Then modify the connection string in node_modules/ma3map/Database.js with your credentials
