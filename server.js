@@ -18,8 +18,12 @@ function Server() {
 
    //initialize the api listeners
    server.initGetAPI();
+   var port = 3000;
+   if(typeof process.env.PORT != 'undefined'){
+      port = process.env.PORT;
+   }
 
-   server.restify.listen(3000, function(){
+   server.restify.listen(port, function(){
       console.log("%s listening at %s", server.restify.name, server.restify.url);
    });
 
