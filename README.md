@@ -14,14 +14,16 @@ Setting up nodejs:
     npm install pg
 
 Running the server (make sure your are still in the server dir)
+
     node schema.js
     npm start
 
 Deploying on heroku:
 
-   heroku create --stack cedar ma3map
-   git push heroku master
-   heroku open
+    heroku create --stack cedar ma3map
+    git push heroku master
+    heroku open
+    heroku logs --tail
 
 ### Database
 As you might have noticed in the server deployment, we are not deploying any database. Instead we do the deployment manually using psql and a database dump. The deployed database is readable from anywhere in the interwebs but if you want to deploy your own database use the following commands:
@@ -31,4 +33,4 @@ As you might have noticed in the server deployment, we are not deploying any dat
     psql -h {host} -p {port} -U {username} -W<ma3map.sql
     cd ../../
 
-Then modify the connection string in node_modules/ma3map/Database.js with your credentials
+Then modify the connection string in database.js with your credentials
