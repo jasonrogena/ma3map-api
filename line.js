@@ -15,7 +15,7 @@ function Line (d, s, c, rC, rD){
 }
 
 Line.prototype.getPoints = function() {
-   var Database = require('ma3map/Database.js');
+   var Database = require('./database');
    var db = new Database();
    var context = {
       "data": data, 
@@ -39,7 +39,7 @@ Line.prototype.getPoints = function() {
       
       data.stops = new Array();
 
-      var Stop = require('ma3map/Stop.js');
+      var Stop = require('./stop');
       for(var sIndex = 0; sIndex < stops.length; sIndex++){
          var currStop = new Stop(stops[sIndex]);
          

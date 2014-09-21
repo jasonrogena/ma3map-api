@@ -40,7 +40,7 @@ Route.prototype.getData = function(){
 */
 Route.prototype.setLines = function(){
    
-   var Database = require('ma3map/Database.js');
+   var Database = require('./database');
    var db = new Database();
    var context = {"data": data, "stops": stops, "complete": complete};
 
@@ -52,7 +52,7 @@ Route.prototype.setLines = function(){
       var routeComplete = {"count": 0, "size": dbData.length }
 
       data.lines = new Array();
-      var Line = require('ma3map/Line.js');
+      var Line = require('./line');
       var uLines = new Array();//store here ids for unique lines      
 
       for(var lIndex = 0; lIndex < dbData.length; lIndex++){
@@ -89,7 +89,7 @@ Route.prototype.setData = function(){
       "complete": complete
    };
    
-   var Database = require('ma3map/Database.js');
+   var Database = require('./database');
    var db = new Database();
    db.runQuery("select * from stops", context, function(context, dbData){
       var data = context.data;

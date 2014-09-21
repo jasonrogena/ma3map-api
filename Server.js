@@ -36,13 +36,13 @@ Server.prototype.initGetAPI = function() {
    //if user does not specify any route, get all routes
    server.restify.get('/get/routes', function(req, res, next){
       console.log("getting all routes");
-      var Database = require('ma3map/Database.js');
+      var Database = require('./database');
       var db = new Database();
 
       var complete = {"count": 0, "size": 1, "serverRes": res, "data": new Array()};//object showing the number of routes done getting their shit together 
       
       db.runQuery("select stop_id, stop_name, stop_code, stop_desc, stop_point[0] as stop_lat, stop_point[1] as stop_lon, location_type, parent_station from stops", {"complete": complete}, function(context, data){
-         var Database = require('ma3map/Database.js');
+         var Database = require('./database');
          var db = new Database();
 
          var context = {"stops": data, "complete": context.complete};
@@ -50,7 +50,7 @@ Server.prototype.initGetAPI = function() {
             var routes = new Array();
             var stops = context.stops;
             var complete = context.complete;
-            var Route = require('ma3map/Route.js');
+            var Route = require('./route');
             console.log("Gotten %s routes", data.length);
             console.log(" and %s stops", stops.length);
             complete.size = data.length;

@@ -7,7 +7,7 @@ var connString;
 */
 function Database() {
    PG = require('pg');
-   connString = "postgres://ckraltoqahjikm:BHOy4DbJ-lcp726AQfoMcKvrlA@ec2-54-204-37-113.compute-1.amazonaws.com:5432/d82rm7dr80o1g7?ssl=true";
+   connString = "postgres://yfjrluyomctphg:HvGZ3dmZbbbxwCthg1_a8__AQC@ec2-54-225-101-4.compute-1.amazonaws.com:5432/d6nvm9856p4su4?ssl=true";
 }
 
 /**
