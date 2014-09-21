@@ -2,9 +2,9 @@
   "name": "ma3map",
   "version": "0.1.0",
   "description": "An API holding Nairobi's matatu route data",
-  "main": "Server.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node Server.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "restify": "~1.4.x",
