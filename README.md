@@ -19,7 +19,7 @@ Running the server (make sure your are still in the server dir)
 
 Deploying on heroku:
 
-   heroku create --stack cedar
+   heroku create --stack cedar ma3map
    git push heroku master
    heroku addons:add heroku-postgresql:hobby-dev
    heroku run node schema.js
