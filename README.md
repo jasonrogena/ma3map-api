@@ -36,3 +36,8 @@ As you might have noticed in the server deployment, we are not deploying any dat
     cd ../../
 
 Then modify the connection string in database.js with your credentials
+
+
+## LICENSE 
+
+This code is released under the [GNU Affero General Public License version 3](http://www.gnu.org/licenses/agpl-3.0.html). Please see the file LICENSE.md for details.
