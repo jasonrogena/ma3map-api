@@ -1,5 +1,5 @@
-# ma3map ![Build Status on Master](https://travis-ci.org/ma3map/ma3map-server.svg?branch=master)
-
+# ma3map [![Build Status](https://travis-ci.org/ma3map/ma3map-server.svg?branch=master)](https://travis-ci.org/ma3map/ma3map-server)
+ 
 This is my atttempt in putting [Nairobi matatu transit route data](http://www.gtfs-data-exchange.com/agency/university-of-nairobi-c4dlab/) by [Digital Matatus](http://www.digitalmatatus.com/) to good use
 
 ## Server
