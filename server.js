@@ -39,32 +39,59 @@ Server.prototype.initGetAPI = function() {
    console.log("Initializing get API");
    //if user does not specify any route, get all routes
    server.restify.get('/get/routes', function(req, res, next){
-      console.log("getting all routes");
-      var Database = require('./database');
-      var db = new Database();
-
-      var complete = {"count": 0, "size": 1, "serverRes": res, "data": new Array()};//object showing the number of routes done getting their shit together 
+      //check if data already cached in file
+      var fs = require("fs");
+      var path = require("path");
+      var tmpDir = path.join(process.cwd(), 'tmp/');
       
-      db.runQuery("select stop_id, stop_name, stop_code, stop_desc, stop_point[0] as stop_lat, stop_point[1] as stop_lon, location_type, parent_station from stops", {"complete": complete}, function(context, data){
+      if(!fs.existsSync(tmpDir)) {
+         console.log("creating tmp directory");
+         fs.mkdirSync(tmpDir);
+      }
+      var routeDataFile = path.join(process.cwd(), 'tmp/route_data.json');
+      if(fs.existsSync(routeDataFile)){
+         console.log("getting cached route data");
+         
+         fs.readFile(routeDataFile, function (error, data) {
+            var bufferString = data.toString();
+            res.send(JSON.parse(bufferString));
+         });
+      }
+      else {
+         console.log("getting route data from database");
+         
          var Database = require('./database');
          var db = new Database();
+         
+         //object showing the number of routes done getting their shit together 
+         var complete = {
+            "count": 0,
+            "size": 1,
+            "serverRes": res,
+            "data": new Array(),
+            "tmpFile": routeDataFile
+         };         
+         db.runQuery("select stop_id, stop_name, stop_code, stop_desc, stop_point[0] as stop_lat, stop_point[1] as stop_lon, location_type, parent_station from stops", {"complete": complete}, function(context, data){
+            var Database = require('./database');
+            var db = new Database();
 
-         var context = {"stops": data, "complete": context.complete};
-         db.runQuery("select * from routes", context, function(context, data){
-            var routes = new Array();
-            var stops = context.stops;
-            var complete = context.complete;
-            var Route = require('./route');
-            console.log("Gotten %s routes", data.length);
-            console.log(" and %s stops", stops.length);
-            complete.size = data.length;
-            
-            for(var rIndex = 0; rIndex < data.length; rIndex++){
-               //if(rIndex == 0)
-               var currRoute = new Route(data[rIndex], stops, complete);
-            }
+            var context = {"stops": data, "complete": context.complete};
+            db.runQuery("select * from routes", context, function(context, data){
+               var routes = new Array();
+               var stops = context.stops;
+               var complete = context.complete;
+               var Route = require('./route');
+               console.log("Gotten %s routes", data.length);
+               console.log(" and %s stops", stops.length);
+               complete.size = data.length;
+               
+               for(var rIndex = 0; rIndex < data.length; rIndex++){
+                  //if(rIndex == 0)
+                  var currRoute = new Route(data[rIndex], stops, complete);
+               }
+            });
          });
-      });
+      }
       
    });
 

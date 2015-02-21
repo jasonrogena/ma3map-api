@@ -56,6 +56,12 @@ Line.prototype.getPoints = function() {
          complete.data.push(routeData);
          if(complete.count == complete.size){//check if all routes are done getting all their data
             console.log("done getting data for %s routes", complete.count);
+            
+            //cache the data then send
+            var fs = require('fs');
+            fs.writeFile(complete.tmpFile, JSON.stringify(complete.data), function(error) {
+                if (error) console.log("Unable to cache route data");
+            });
             complete.serverRes.send(complete.data);
          }
       }
