@@ -2,13 +2,13 @@
  
 ma3map is a [matatu](http://en.wikipedia.org/wiki/Matatu) transit application for Nairobi. It uses GTFS data collected by University of Nairobi's C4DLab available [here](http://www.gtfs-data-exchange.com/agency/university-of-nairobi-c4dlab/). For more information on the GTFS data refer to [Digital Matatus' website](http://www.digitalmatatus.com/). Visit ma3map's [GitHub Homepage](https://www.github.com/ma3map) for the entire codebase.
 
-## Server [![Build Status](https://travis-ci.org/ma3map/ma3map-server.svg?branch=master)](https://travis-ci.org/ma3map/ma3map-server)
+## API [![Build Status](https://travis-ci.org/ma3map/ma3map-api.svg?branch=master)](https://travis-ci.org/ma3map/ma3map-api)
 
-The server runs on [Heroku](https://www.heroku.com) as a Node.js app.
+The API runs on [Heroku](https://www.heroku.com) as a Node.js app.
 
 Setting up nodejs:
     
-    cd server
+    cd ma3map-api
     npm install fs
     npm install restify
 
@@ -16,7 +16,7 @@ Setting up nodejs:
     npm install pg
 
 
-Running the server (make sure your are still in the server dir):
+Running on localhost (make sure your are still in the project root dir):
 
     npm start
 
@@ -30,7 +30,7 @@ Deploying on heroku:
 
 
 ### Database
-As you might have noticed in the server deployment, we are not deploying any database. Instead we do the deployment manually using psql and a database dump. The deployed database is readable from anywhere in the interwebs but if you want to deploy your own database use the following commands:
+As you might have noticed in the deployment, we are not deploying any database. Instead we do the deployment manually using psql and a database dump. The deployed database is readable from anywhere in the interwebs but if you want to deploy your own database use the following commands:
 
     cd data/gis/clean
     chmod a+x ma3map.sql
