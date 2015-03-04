@@ -93,7 +93,15 @@ public class Line {
                 LatLng currPoint = polyline.get(i);
                 for(int j = 0; j < stops.size(); j++) {
                     if(stops.get(j).getDistance(currPoint) < 100) {//current stop is at most 100m from the polyline
-                        includedStops.add(stops.get(j));
+                        //check if current stop is in includedStops
+                        boolean stopFound = false;
+                        for(int k = 0; k < includedStops.size(); k++){
+                            if(includedStops.get(k).getId().equals(stops.get(j).getId())) {
+                                stopFound = true;
+                                break;
+                            }
+                        }
+                        if(stopFound == false) includedStops.add(stops.get(j));
                     }
                 }
             }
