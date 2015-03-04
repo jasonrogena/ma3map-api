@@ -4,6 +4,7 @@ package org.ma3map.api;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.lang.System;
+import java.lang.Object;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -47,6 +48,8 @@ public class GetPaths {
     private ArrayList<Commute> commutePath;
     private GetPathsProgressListener getPathsProgressListener;
     private long timeTaken;
+    private final Object lock = new Object();
+
 
     /**
     * Entry point for the get/paths API
@@ -101,11 +104,15 @@ public class GetPaths {
 
                 //3. wait for calculation to finish
                 int s = 0;
-                while(isWorking){
-                    if((s % 1000) == 0) {
-                        Log.d(TAG, "Main thread waiting....");
+				synchronized(lock){
+                    while(isWorking){
+                        try {
+                            lock.wait();
+                        }
+                        catch(InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
-                    s++;
                 }
                 //convert commutePath to JSONArray
                 JSONObject jsonObject = new JSONObject();
@@ -178,6 +185,9 @@ public class GetPaths {
                 isWorking = false;
                 timeTaken = System.currentTimeMillis() - startTime;
                 Log.i(TAG, "Time taken = "+String.valueOf(timeTaken)+" milliseconds");
+                synchronized(lock) {
+                    lock.notifyAll();
+                }
            }
         }
     }
