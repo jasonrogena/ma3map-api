@@ -68,9 +68,13 @@ public class BestPath extends ProgressHandler {
     private final ArrayList<Route> routes;
     private final ArrayList<Commute> allCommutes;
     private int bestPathThreadIndex;
+    private int noFromStops;
+    private int noToStops;
     
-    public BestPath(LatLng actualFrom, LatLng actualTo, ArrayList<Route> routes){
+    public BestPath(LatLng actualFrom, int noFromStops, LatLng actualTo, int noToStops, ArrayList<Route> routes){
     	this.actualFrom = actualFrom;
+        this.noFromStops = noFromStops;
+        this.noToStops = noToStops;
     	this.actualTo = actualTo;
     	this.routes = routes;
     	allCommutes = new ArrayList<Commute>();
@@ -109,11 +113,11 @@ public class BestPath extends ProgressHandler {
         //get stops closest to source
         Collections.sort(fromStops, new Stop.DistanceComparator(actualFrom));//stop closest to from becomes first
         from = new ArrayList<Stop>();
-        from.addAll(fromStops.subList(0, MAX_FROM_POINTS));
+        from.addAll(fromStops.subList(0, this.noFromStops));
         
         Collections.sort(toStops, new Stop.DistanceComparator(actualTo));//stop closest to destination becomes first
         to = new ArrayList<Stop>();
-        to.addAll(toStops.subList(0, MAX_TO_POINTS));
+        to.addAll(toStops.subList(0, this.noToStops));
         Log.d(TAG, "Done initializing BestPath");
     }
     

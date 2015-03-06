@@ -58,9 +58,16 @@ public class GetPaths {
     */
     @GET
     @Produces("application/json")
-    public String start(@QueryParam("from") String fromString, @QueryParam("to") String toString) {
+    public String start(@QueryParam("from") String fromString, @QueryParam("to") String toString, @QueryParam("no_from_stops") String noFromStops, @QueryParam("no_to_stops") String noToStops) {
         Log.i(TAG, "API called");
-
+        int noFrom = BestPath.MAX_FROM_POINTS;
+        int noTo = BestPath.MAX_TO_POINTS;
+        if(noFromStops != null && noFromStops.length() > 0) {
+            noFrom = Integer.valueOf(noFromStops);
+        }
+        if(noToStops != null && noToStops.length() > 0) {
+            noTo = Integer.valueOf(noToStops);
+        }
         long startTime = System.currentTimeMillis();
         isWorking = true;
         if(fromString != null && toString != null) {
@@ -97,7 +104,7 @@ public class GetPaths {
                 ArrayList<Route> routes = dataHandler.getRouteData();
 
                 //2. calculate best path
-                BestPath bestPathHandler = new BestPath(fromPoint, toPoint, routes);
+                BestPath bestPathHandler = new BestPath(fromPoint, noFrom, toPoint, noTo, routes);
                 getPathsProgressListener = new GetPathsProgressListener(System.currentTimeMillis());
                 bestPathHandler.addProgressListener(getPathsProgressListener);
                 bestPathHandler.calculatePaths();
