@@ -1,7 +1,7 @@
 {
   "name": "ma3map",
   "description": "An API holding Nairobi's matatu route data",
-  "repository": "https://github.com/jasonrogena/ma3map",
+  "repository": "https://github.com/ma3map/ma3map-server",
   "logo": "http://node-js-sample.herokuapp.com/node.svg",
   "keywords": ["matatu", "ma3", "map", "ma3map", "digital matatus"]
 }
