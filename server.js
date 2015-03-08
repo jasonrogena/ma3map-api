@@ -16,8 +16,9 @@ function Server() {
       .use(restify.fullResponse())
       .use(restify.bodyParser());
 
-   //initialize the api listeners
-   server.initGetAPI();
+   //initialize the api endpoints
+   server.initGetStopsEndpoint();
+   server.initGetRoutesEndpoint();
    var port = 3000;
    if(typeof process.env.PORT != 'undefined'){
       port = process.env.PORT;
@@ -30,13 +31,11 @@ function Server() {
 }
 
 /**
-* This module initializes the API responsible for:
+* This module initializes the API endpoint responsible for:
 *     - getting the list of routes
-*     - getting all route data
-*     - getting a single route's data
 */
-Server.prototype.initGetAPI = function() {
-   console.log("Initializing get API");
+Server.prototype.initGetRoutesEndpoint = function() {
+   console.log("Initializing getRoutes endpoint");
    //if user does not specify any route, get all routes
    server.restify.get('/get/routes', function(req, res, next){
       //check if data already cached in file
@@ -100,6 +99,23 @@ Server.prototype.initGetAPI = function() {
       console.log("getting all routes");
       
    });*/
+};
+
+/**
+* This module initializes the API endpoint responsible for:
+*     - getting the list of stops
+*/
+Server.prototype.initGetStopsEndpoint = function() {
+   console.log("Initializing getStops endpoint");
+   //if user does not specify any route, get all routes
+   server.restify.get('/get/stops', function(req, res, next){
+      var Database = require('./database');
+      var db = new Database();
+      var complete = {};
+      db.runQuery("select stop_id, stop_name, stop_code, stop_desc, stop_point[0] as stop_lat, stop_point[1] as stop_lon, location_type, parent_station from stops", {"complete": complete}, function(context, data){
+         res.send(data);
+      });
+   });
 };
 
 /**
