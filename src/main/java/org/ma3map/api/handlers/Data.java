@@ -14,7 +14,9 @@ import java.util.ArrayList;
 
 import org.ma3map.api.carriers.Route;
 import org.ma3map.api.carriers.Stop;
+import org.ma3map.api.carriers.LatLng;
 import org.ma3map.api.helpers.JSONArray;
+import org.ma3map.api.helpers.JSONObject;
 import org.ma3map.api.listeners.ProgressListener;
 
 import org.json.JSONException;
@@ -22,7 +24,8 @@ import org.json.JSONException;
 public class Data extends ProgressHandler {
 	private static final String TAG = "ma3map.Data";
 
-    private static final String URL_MA3MAP = "http://api.ma3map.org";
+    private static final String URL_MA3MAP_NODEJS = "http://api.ma3map.org";//url for ma3map API hosted on Heroku
+    private static final String URL_MA3MAP_JAVA = "http://127.0.0.1:9998";//url for ma3map API 
     private static final int HTTP_POST_TIMEOUT = 20000;
     private static final int HTTP_RESPONSE_TIMEOUT = 200000;
 
@@ -32,6 +35,8 @@ public class Data extends ProgressHandler {
     private static final String API_MA3MAP_URI_GET_ROUTES = "/get/routes";
     private static final String API_MA3MAP_URI_GET_STOPS = "/get/stops";
     private static final String API_MA3MAP_URI_SEARCH = "/search";
+    private static final String API_MA3MAP_URI_GET_PATHS = "/get_paths";
+    private static final String API_MA3MAP_URI_CACHE_PATHS = "/cache_paths";
 
     public static final String DIRECTIONS_WALKING = "walking";
     public static final String DIRECTIONS_DRIVING = "driving";
@@ -74,7 +79,7 @@ public class Data extends ProgressHandler {
                 //no route data cache. Fetch route data from the getRouteData API
                 Log.i(TAG, "Initialising connection to ma3map get route data API");
                 updateProgressListeners(0, 0, "Getting route data from the getRouteData API", ProgressListener.FLAG_WORKING);
-                URL apiURL = new URL(URL_MA3MAP+API_MA3MAP_URI_GET_ROUTES);
+                URL apiURL = new URL(URL_MA3MAP_NODEJS+API_MA3MAP_URI_GET_ROUTES);
                 BufferedReader reader = new BufferedReader(new InputStreamReader(apiURL.openStream()));
                 StringBuilder output = new StringBuilder();
                 String line;
@@ -166,7 +171,7 @@ public class Data extends ProgressHandler {
                 //no stop data cache. Fetch stop data from the getStopData API
                 Log.i(TAG, "Initialising connection to ma3map get stop data API");
                 updateProgressListeners(0, 0, "Getting stop data from the getStopData API", ProgressListener.FLAG_WORKING);
-                URL apiURL = new URL(URL_MA3MAP+API_MA3MAP_URI_GET_STOPS);
+                URL apiURL = new URL(URL_MA3MAP_NODEJS+API_MA3MAP_URI_GET_STOPS);
                 BufferedReader reader = new BufferedReader(new InputStreamReader(apiURL.openStream()));
                 StringBuilder output = new StringBuilder();
                 String line;
@@ -228,5 +233,44 @@ public class Data extends ProgressHandler {
     		e.printStackTrace();
     	}
     	return null;
+    }
+
+    public JSONObject getPaths(LatLng from, int noFromStops, LatLng to, int noToStops) {
+        try {
+            Log.i(TAG, "Getting paths from /get_paths endpoint");
+            String jsonString = null;
+            updateProgressListeners(0, 0, "Getting stop data from the getStopData API", ProgressListener.FLAG_WORKING);
+            URL apiURL = new URL(URL_MA3MAP_JAVA+API_MA3MAP_URI_GET_PATHS+"?from="+from.getString()+"&to="+to.getString()+"&no_from_stops="+String.valueOf(noFromStops)+"&no_to_stops="+String.valueOf(noToStops));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(apiURL.openStream()));
+            StringBuilder output = new StringBuilder();
+            String line;
+            while((line = reader.readLine()) != null){
+                output.append(line);
+            }
+            reader.close();
+            jsonString = output.toString();
+            if(jsonString != null) {
+                try {
+                    JSONObject paths = new JSONObject(jsonString);
+                    finalizeProgressListeners(paths, "Done getting paths from "+from.getString()+" to "+to.getString(), ProgressListener.FLAG_DONE);
+                    return paths;
+                } catch (JSONException e) {
+                    // TODO Auto-generated catch block
+                    finalizeProgressListeners(null, "An error occurred while trying to decode the stop data", ProgressListener.FLAG_ERROR);
+                    Log.e(TAG, "JSONException thrown while trying to generate a JSONArray using data from the ma3map get stop data API");
+                    e.printStackTrace();
+                }
+            }
+		} catch (MalformedURLException e) {
+			finalizeProgressListeners(null, "An error occurred while trying to connect to the server hosting the getStopData API", ProgressListener.FLAG_ERROR);
+			Log.e(TAG, "MalformedURLException thrown while trying to conntect to the get stop data url");
+			e.printStackTrace();
+		}
+    	catch (IOException e){
+    		finalizeProgressListeners(null, "An error occurred while trying to get data from the getStopData API", ProgressListener.FLAG_ERROR);
+    		Log.e(TAG, "IOException thrown while trying to initialise an IOStream to the get stop data url");
+    		e.printStackTrace();
+    	}
+        return null;
     }
 }

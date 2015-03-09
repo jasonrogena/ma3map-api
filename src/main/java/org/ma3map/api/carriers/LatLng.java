@@ -63,6 +63,10 @@ public class LatLng {
 		return false;
 	}
 
+    public String getString() {
+        return String.valueOf(latitude)+","+String.valueOf(longitude);
+    }
+
     /**
      * Encodes a sequence of LatLngs into an encoded path string.
      */

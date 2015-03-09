@@ -59,8 +59,18 @@ public class CachePaths {
         @Override
         public void onDone(Object output, String message, int flag) {
             if(output != null) {
-               ArrayList<Stop> stops = (ArrayList<Stop>) output;
-               Log.d(TAG, "Number of stops = "+String.valueOf(stops.size()));
+                ArrayList<Stop> stops = (ArrayList<Stop>) output;
+                Log.d(TAG, "Number of stops = "+String.valueOf(stops.size()));
+                Data dataHandler = new Data();
+                for(int i = 0; i < stops.size(); i++) {
+                    Log.i(TAG, "Currently at "+String.valueOf(i+1)+" of "+String.valueOf(stops.size())+" stops");
+                    for(int j = 0; j < stops.size(); j++) {
+                        if(i != j) {
+                            JSONObject paths = dataHandler.getPaths(stops.get(i).getLatLng(), 1, stops.get(j).getLatLng(), 1);
+                            Log.d(TAG, paths.toString());
+                        }
+                    }
+                }
             }
             else {
                 Log.e(TAG, "Could not fetch stop data from the server");
