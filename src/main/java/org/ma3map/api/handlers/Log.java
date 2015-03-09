@@ -37,7 +37,7 @@ public class Log {
 	 * @param message	The message to be logged
 	 */
 	public static void w(String tag, String message){
-		System.out.println(ANSI_YELLOW+"D/"+tag+" "+message+ANSI_RESET);
+		System.out.println(ANSI_YELLOW+"W/"+tag+" "+message+ANSI_RESET);
 	}
 	
 	/**
@@ -47,6 +47,6 @@ public class Log {
 	 * @param message	The message to be logged
 	 */
 	public static void e(String tag, String message){
-		System.out.println(ANSI_RED+"D/"+tag+" "+message+ANSI_RESET);
+		System.out.println(ANSI_RED+"E/"+tag+" "+message+ANSI_RESET);
 	}
 }
