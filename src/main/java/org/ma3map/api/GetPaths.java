@@ -1,4 +1,3 @@
-
 package org.ma3map.api;
 
 import java.io.IOException;
@@ -23,13 +22,12 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-// The Java class will be hosted at the URI path "/myresource"
 /**
  * @author Jason Rogena <jasonrogena@gmail.com>
  * @since 2015-02-13
  *
- * This class implements the /get/paths API for ma3map.
- * The /get/paths API calculates the best path from the source to the destination
+ * This class implements the /get_paths endpoint for the ma3map API.
+ * The /get_paths API calculates the best path from the source to the destination
  * points
  * <p>
  * The API expects the following variables from the client:
@@ -37,7 +35,8 @@ import org.json.JSONException;
  *  -   <code>to</code>     The end point for the commute
  *  <p>
  * GPS coordinates from the client should be of the form <code>latitude,longitude</code>
- */@Path("/paths")
+ */
+@Path("/get_paths")
 public class GetPaths {
 
     private static final String TAG = "ma3map.GetPaths";
@@ -52,7 +51,7 @@ public class GetPaths {
 
 
     /**
-    * Entry point for the get/paths API
+    * Entry point for the /get_paths endpoint
     *
     * @return Stringified JSONArray of the alternative paths
     */

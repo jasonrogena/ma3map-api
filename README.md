@@ -6,12 +6,12 @@ ma3map is a [matatu](http://en.wikipedia.org/wiki/Matatu) transit application fo
 
 The Java API runs as a [Jersey Web Service](https://jersey.java.net) running ontop of [The Grizzly NIO Framework](https://grizzly.java.net). This API exposes the following endpoints:
 
-1. /paths
+1. /get_paths
 ---------
 
 Use this endpoint to get alternative Matatu routes from point-a to point-b in Nairobi. This endpoint expects two GET Request parameters ('from' and 'to') e.g:
 
-    **[DEPLOYMENT IP ADDRESS]**:9998/paths?from=-1.264945,36.721226&to=-1.279868,36.818099
+    **[DEPLOYMENT IP ADDRESS]**:9998/get_paths?from=-1.264945,36.721226&to=-1.279868,36.818099
 
 ### Deployment
 
@@ -31,5 +31,5 @@ Deployment is as easy as:
 
 This API has already been deployed in a Linode instance (212.111.43.103). The paths endpoint, for instance, can be accessed by calling:
 
-    http://212.111.43.103:9998/paths?from=-1.264945,36.721226&to=-1.279868,36.818099
+    http://212.111.43.103:9998/get_paths?from=-1.264945,36.721226&to=-1.279868,36.818099
 
