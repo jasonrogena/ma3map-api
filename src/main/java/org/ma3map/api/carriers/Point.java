@@ -41,8 +41,8 @@ public class Point {
     }
     
     public Point(JSONObject pointData) throws JSONException{
-        lat = pointData.getString("point_lat");
-        lon = pointData.getString("point_lon");
+        lat = String.valueOf(pointData.getDouble("point_lat"));
+        lon = String.valueOf(pointData.getDouble("point_lon"));
         sequence = pointData.getInt("point_sequence");
         distTraveled = pointData.getInt("dist_traveled");
     }

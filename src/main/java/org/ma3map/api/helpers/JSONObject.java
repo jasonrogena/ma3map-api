@@ -23,13 +23,7 @@ public class JSONObject extends org.json.JSONObject implements Serializable {
             return -1;
         }
         else {
-            String intString = super.getString(name).trim();
-            if(intString.length() == 0){
-                return -1;
-            }
-            else {
-                return Integer.parseInt(intString);
-            }
+            return super.getInt(name);
         }
     }
 

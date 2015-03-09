@@ -81,8 +81,8 @@ public class Stop {
         name = stopData.getString("stop_name");
         code = stopData.getString("stop_code");
         desc = stopData.getString("stop_desc");
-        lat = stopData.getString("stop_lat");
-        lon = stopData.getString("stop_lon");
+        lat = String.valueOf(stopData.getDouble("stop_lat"));
+        lon = String.valueOf(stopData.getDouble("stop_lon"));
         locationType = stopData.getInt("location_type");
         parentStation = stopData.getString("parent_station");
     }
