@@ -31,6 +31,10 @@ public class Database {
         }
     }
 
+    public Connection getConnection() {
+        return connection;
+    }
+
     public ResultSet execQuery(String query, boolean expectingResult) {
         PreparedStatement ps = null;
         try {
@@ -60,6 +64,33 @@ public class Database {
         return null;
     }
 
+    public int execInsertQuery(PreparedStatement ps) {
+        try {
+            ps.executeUpdate();
+            ResultSet rs = ps.getGeneratedKeys();
+            int lastId = -1;
+            if(rs.next()) {
+                lastId = rs.getInt(1);
+            }
+            return lastId;
+        }
+        catch (SQLException e) {
+            Log.e(this.TAG, "Unable to run insert prepared statement");
+            e.printStackTrace();
+        }
+        finally {
+            if(ps != null) {
+                try{
+                    ps.close();
+                }
+                catch (SQLException e) {
+                    Log.e(this.TAG, "Unable to close the prepared statement");
+                }
+            }
+        }
+        return -1;
+    }
+    
     public boolean close() {
         if(connection != null) {
             try {
