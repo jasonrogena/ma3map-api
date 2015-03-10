@@ -66,8 +66,46 @@ public class CachePaths {
                     Log.i(TAG, "Currently at "+String.valueOf(i+1)+" of "+String.valueOf(stops.size())+" stops");
                     for(int j = 0; j < stops.size(); j++) {
                         if(i != j) {
-                            JSONObject paths = dataHandler.getPaths(stops.get(i).getLatLng(), 1, stops.get(j).getLatLng(), 1);
-                            Log.d(TAG, paths.toString());
+                            JSONObject pathObject = dataHandler.getPaths(stops.get(i).getLatLng(), 1, stops.get(j).getLatLng(), 2);
+                            try {
+                                JSONArray paths = pathObject.getJSONArray("paths");
+                                String rawTime = pathObject.getString("time_taken");
+                                double time = Double.parseDouble(rawTime.replace("ms", ""));
+                                //TODO: run query for commute
+                                //commute(id serial primary key, start_id varchar, destination_id varchar, processing_time double precision)
+                                String cQuery = "insert into commute(start_id, destination_id, processing_time) values(";
+                                cQuery = cQuery + "'" + stops.get(i).getId() + "'";
+                                cQuery = cQuery + ", '" + stops.get(j).getId() + "'";
+                                cQuery = cQuery + ", " + String.valueOf(time) + ")";
+                                Log.d(TAG, cQuery);
+                                int commuteId = 0;
+                                for(int pI = 0; pI < paths.length(); pI++) {
+                                    JSONObject currPath = paths.getJSONObject(pI);
+                                    double score = currPath.getDouble("score");
+                                    String pQuery = "insert into commute_path(score, commute_id) values("+score+","+commuteId+")";
+                                    Log.d(TAG, pQuery);
+                                    JSONArray steps = currPath.getJSONArray("steps");
+                                    int stepSeq = 0;
+                                    int pathId = 0;
+                                    for(int sI = 0; sI < steps.length(); sI++) {
+                                        JSONObject currStep = steps.getJSONObject(sI);
+                                        if(currStep.getString("type").equals("matatu")) {
+                                            //commute_step(id serial primary key, commute_path_id integer references commute_path(id), text varchar, sequence integer, start_id varchar, destination_id varchar, route_id varchar);
+                                            String sQuery = "insert into commute_step(commute_path_id, text, sequence, start_id, destination_id, route_id) values(";
+                                            sQuery = sQuery + pathId;
+                                            sQuery = sQuery + ", '" + currStep.getString("text") + "'"; 
+                                            sQuery = sQuery + ", " + stepSeq; 
+                                            sQuery = sQuery + ", '" + currStep.getJSONObject("start").getString("id") + "'"; 
+                                            sQuery = sQuery + ", '" + currStep.getJSONObject("destination").getString("id") + "')"; 
+                                            sQuery = sQuery + ", '" + currStep.getJSONObject("route").getString("id") + "')"; 
+                                            stepSeq++;
+                                            Log.d(TAG, sQuery);
+                                        }
+                                    }
+                                }
+                            } catch(JSONException e) {
+                                Log.e(TAG, "An error occurred while trying to ");
+                            }
                         }
                     }
                 }
