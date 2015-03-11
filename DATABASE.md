@@ -19,7 +19,7 @@ Setup the database by running the following commands (the database password used
     
 
 Exit out of psql
-Make sure /etc/postgresql/[VERSION}/main/pg_hba.conf has the following lines:
+Make sure /etc/postgresql/[VERSION]/main/pg_hba.conf has the following lines:
 
     # TYPE  DATABASE    USER        CIDR-ADDRESS          METHOD
     # "local" is for Unix domain socket connections only
