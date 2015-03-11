@@ -46,6 +46,7 @@ public class Data extends ProgressHandler {
     private static final String CACHE_ROUTES = "cache/route.json";
     private static final String CACHE_STOPS = "cache/stops.json";
     public static final String CACHE_PATHS = "cache/paths.sql";
+    public static final String BLOCK_PATH_CACHING = "cache/.currently_caching_paths";
 
     /**
      * Default constructor for this class;
@@ -94,8 +95,7 @@ public class Data extends ProgressHandler {
                 BufferedWriter writer = null;
                 try {
                     //create file and write json
-                    cache.getParentFile().mkdirs();
-                    cache.createNewFile();
+                    createFile(CACHE_ROUTES);
                     writer = new BufferedWriter(new OutputStreamWriter(
                         new FileOutputStream(CACHE_ROUTES), "utf-8"));
                     writer.write(jsonString);
@@ -151,16 +151,34 @@ public class Data extends ProgressHandler {
          if(file.exists()) {
              file.delete();
          }
-    }    
+    }
 
-    public boolean addStringToFile(String filename, String string) {
+    public boolean createFile(String filename) {
         try {
             File file = new File(filename);
             if(!file.exists()) {
                 file.getParentFile().mkdirs();
                 file.createNewFile();
             }
+            return true;
+        }
+        catch(IOException e) {
+            Log.e(TAG, "Could not create file "+filename);
+            e.printStackTrace();
+        }
+        return false;
+    }
 
+    public boolean fileExists(String filename) {
+        File file = new File(filename);
+        if(file.exists()) {
+            return true;
+        }
+        return false;
+    }
+
+    public boolean addStringToFile(String filename, String string) {
+        if(createFile(filename)) {
             try {
                 PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(filename, true)));
                 out.println(string);
@@ -172,9 +190,6 @@ public class Data extends ProgressHandler {
                 e2.printStackTrace();
             }
 
-        }catch (IOException e) {
-            Log.e(TAG, "An error occurred while trying to open "+filename);
-            e.printStackTrace();
         }
         return false;
     }
@@ -219,8 +234,7 @@ public class Data extends ProgressHandler {
                 BufferedWriter writer = null;
                 try {
                     //create file and write json
-                    cache.getParentFile().mkdirs();
-                    cache.createNewFile();
+                    createFile(CACHE_STOPS);
                     writer = new BufferedWriter(new OutputStreamWriter(
                         new FileOutputStream(CACHE_STOPS), "utf-8"));
                     writer.write(jsonString);

@@ -55,13 +55,17 @@ public class CachePaths {
             cacheType = CACHE_DB;
         }
         Data dataHandler = new Data();
-        if(cacheType.equals(CACHE_FILE)) {
-            dataHandler.deleteFile(Data.CACHE_PATHS);
+        if(!dataHandler.fileExists(Data.BLOCK_PATH_CACHING)) {
+            dataHandler.createFile(Data.BLOCK_PATH_CACHING);
+            if(cacheType.equals(CACHE_FILE)) {
+                dataHandler.deleteFile(Data.CACHE_PATHS);
+            }
+            GetStopsProgressListener getStopsProgressListener = new GetStopsProgressListener();
+            dataHandler.addProgressListener(getStopsProgressListener);
+            dataHandler.getStopData();
+            return "DONE";
         }
-        GetStopsProgressListener getStopsProgressListener = new GetStopsProgressListener();
-        dataHandler.addProgressListener(getStopsProgressListener);
-        dataHandler.getStopData();
-        return "DONE";
+        return "RUNNING";
     }
 
     private class GetStopsProgressListener implements ProgressListener {
@@ -178,6 +182,7 @@ public class CachePaths {
                         }
                     }
                 }
+                dataHandler.deleteFile(Data.BLOCK_PATH_CACHING);
             }
             else {
                 Log.e(TAG, "Could not fetch stop data from the server");
