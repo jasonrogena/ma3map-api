@@ -9,9 +9,29 @@ The Java API runs as a [Jersey Web Service](https://jersey.java.net) running ont
 1. /get_paths
 ---------
 
-Use this endpoint to get alternative Matatu routes from point-a to point-b in Nairobi. This endpoint expects two GET Request parameters ('from' and 'to') e.g:
+Use this endpoint to get alternative Matatu routes from point-a to point-b in Nairobi. This endpoint expects GET Request parameters e.g:
 
     **[DEPLOYMENT IP ADDRESS]**:9998/get_paths?from=-1.264945,36.721226&to=-1.279868,36.818099
+
+Here's a list of parameters that can be consumed by this endpoint:
+
+* from: GPS coordinate representing the starting point for the commute
+* to: GPS coordinate representing the final denstination for the commute
+* no_from_stops: Optional. Number of matatu stops closest to **from** to be considered as the first stop in the commute
+* no_to_stops: Optional. Number of matatu stops closest to **to** to be considered as the last stop in the commute
+
+
+1. /cache_paths
+---------
+
+Use this endpoint to calculate alternative paths from each of the matatu stops to all the other stops. Paths can either be directly stored in a PostgreSQL database or in a .sql file. This endpoint expects GET Request parameters e.g:
+
+    **[DEPLOYMENT IP ADDRESS]**:9998/cache_paths?to=file
+
+Here's a list of fields that can be consumed by this endpoint:
+
+* to: Optional. Where to store the calculated paths. Can either be **db** or **file** but defaults to **file** (recommended). The DATABASE.md file explains how to create a PostgreSQL database that is usable with this endpoint.
+
 
 ### Deployment
 
