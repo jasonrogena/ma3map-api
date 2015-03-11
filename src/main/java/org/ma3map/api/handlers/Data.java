@@ -1,5 +1,7 @@
 package org.ma3map.api.handlers;
 
+import java.io.PrintWriter;
+import java.io.FileWriter;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -43,6 +45,7 @@ public class Data extends ProgressHandler {
 
     private static final String CACHE_ROUTES = "cache/route.json";
     private static final String CACHE_STOPS = "cache/stops.json";
+    public static final String CACHE_PATHS = "cache/paths.sql";
 
     /**
      * Default constructor for this class;
@@ -141,6 +144,39 @@ public class Data extends ProgressHandler {
     		e.printStackTrace();
     	}
     	return null;
+    }
+
+    public void deleteFile(String filename) {
+         File file = new File(filename);
+         if(file.exists()) {
+             file.delete();
+         }
+    }    
+
+    public boolean addStringToFile(String filename, String string) {
+        try {
+            File file = new File(filename);
+            if(!file.exists()) {
+                file.getParentFile().mkdirs();
+                file.createNewFile();
+            }
+
+            try {
+                PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(filename, true)));
+                out.println(string);
+                out.close();
+                return true;
+            }
+            catch (IOException e2) {
+                Log.e(TAG, "An error occurred while trying to write to file "+filename);
+                e2.printStackTrace();
+            }
+
+        }catch (IOException e) {
+            Log.e(TAG, "An error occurred while trying to open "+filename);
+            e.printStackTrace();
+        }
+        return false;
     }
     
     public ArrayList<Stop> getStopData(){
