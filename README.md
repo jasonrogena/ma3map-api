@@ -28,7 +28,7 @@ Bulding the project is as easy as:
     cd ma3map-api_java 
     mvn clean install
 
-Run the webserver by running the following commands (the first command sets the heap size available to Maven, adjust to your liking):
+Start the webserver by running the following commands (the first command sets the heap size available to Maven, adjust to your liking):
 
     export MAVEN_OPTS=-Xmx1024m
     mvn exec:java
