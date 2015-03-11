@@ -7,6 +7,12 @@
     create table commute_path(id serial primary key, score double precision, commute_id integer references commute(id));
     create table commute_step(id serial primary key, commute_path_id integer references commute_path(id), text varchar, sequence integer, start_id varchar, destination_id varchar, route_id varchar);
     create user ma3map with nosuperuser nocreatedb nocreaterole noinherit login encrypted password 'kj432@cF23pl&d';
+    grant select, insert, update, delete, truncate on commute to ma3map;
+    grant select, insert, update, delete, truncate on commute_id_seq to ma3map;
+    grant select, insert, update, delete, truncate on commute_path to ma3map;
+    grant select, insert, update, delete, truncate on commute_path_id_seq to ma3map;
+    grant select, insert, update, delete, truncate on commute_step to ma3map;
+    grant select, insert, update, delete, truncate on commute_step_id_seq to ma3map;
     
 Exit out of psql
 Make sure /etc/postgresql/[VERSION}/main/pg_hba.conf has the following lines
