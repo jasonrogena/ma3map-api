@@ -22,11 +22,15 @@ This [Maven](https://maven.apache.org) project is very easy to deploy. Make sure
 
 Make sure you use OpenJDK 7 and not 6 or 8. Also make sure you point your JAVA_HOME to the right directory.
 
-Deployment is as easy as:
+Bulding the project is as easy as:
 
     git clone https://github.com/ma3map/ma3map-api_java.git
     cd ma3map-api_java 
     mvn clean install
+
+Run the webserver by running the following commands (the first command sets the heap size available to Maven, adjust to your liking):
+
+    export MAVEN_OPTS=-Xmx1024m
     mvn exec:java
 
 This API has already been deployed in a Linode instance (212.111.43.103). The paths endpoint, for instance, can be accessed by calling:
