@@ -8,7 +8,7 @@ Setup the database by running the following commands (the database password used
     \c ma3map
     create table commute(id serial primary key, start_id varchar, destination_id varchar, processing_time double precision);
     create table commute_path(id serial primary key, score double precision, commute_id integer references commute(id));
-    create table commute_step(id serial primary key, commute_path_id integer references commute_path(id), text varchar, sequence integer, start_id varchar, destination_id varchar, route_id varchar);
+    create table commute_step(id serial primary key, commute_path_id integer references commute_path(id), sequence integer, start_id varchar, destination_id varchar, route_id varchar);
     create user ma3map with nosuperuser nocreatedb nocreaterole noinherit login encrypted password 'kj432@cF23pl&d';
     grant select, insert, update, delete, truncate on commute to ma3map;
     grant select, insert, update, delete, truncate on commute_id_seq to ma3map;

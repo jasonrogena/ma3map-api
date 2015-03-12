@@ -145,10 +145,9 @@ public class CachePaths {
                                             int stepId = stepIndex;
                                             stepIndex++;
                                             if(cacheType.equals(CACHE_DB)) {
-                                                String sQuery = "insert into commute_step(commute_path_id, text, sequence, start_id, destination_id, route_id) values(?, ?, ?, ?, ?, ?)";
+                                                String sQuery = "insert into commute_step(commute_path_id, sequence, start_id, destination_id, route_id) values(?, ?, ?, ?, ?)";
                                                 PreparedStatement sps = databaseHandler.getConnection().prepareStatement(sQuery, Statement.RETURN_GENERATED_KEYS);
                                                 sps.setInt(1, pathId);
-                                                sps.setString(2, currStep.getString("text"));
                                                 sps.setInt(3, stepSeq);
                                                 sps.setString(4, currStep.getJSONObject("start").getString("id"));
                                                 sps.setString(5, currStep.getJSONObject("destination").getString("id"));
@@ -156,10 +155,9 @@ public class CachePaths {
                                                 databaseHandler.execInsertQuery(sps);
                                             }
                                             else if(cacheType.equals(CACHE_FILE)) {
-                                                String sQuery = "insert into commute_step(id, commute_path_id, text, sequence, start_id, destination_id, route_id) values(";
+                                                String sQuery = "insert into commute_step(id, commute_path_id, sequence, start_id, destination_id, route_id) values(";
                                                 sQuery = sQuery + String.valueOf(stepId);
                                                 sQuery = sQuery + ", " + String.valueOf(pathId);
-                                                sQuery = sQuery + ", '" + StringEscapeUtils.escapeSql(currStep.getString("text")) + "'";
                                                 sQuery = sQuery + ", " + String.valueOf(stepSeq);
                                                 sQuery = sQuery + ", '" + StringEscapeUtils.escapeSql(currStep.getJSONObject("start").getString("id")) + "'";
                                                 sQuery = sQuery + ", '" + StringEscapeUtils.escapeSql(currStep.getJSONObject("destination").getString("id")) + "'";
