@@ -1,4 +1,4 @@
-Inorder for you to use this API, you need to setup a Postgresql database.
+It is possible for you to store commute paths from the /cache_paths endpoint directly into a Postgresql database.
 Setup the database by running the following commands (the database password used here can be changed but will also require you to change it in the code):
 
     apt-get install postgresql
@@ -19,7 +19,7 @@ Setup the database by running the following commands (the database password used
     
 
 Exit out of psql
-Make sure /etc/postgresql/[VERSION}/main/pg_hba.conf has the following lines:
+Make sure /etc/postgresql/[VERSION]/main/pg_hba.conf has the following lines:
 
     # TYPE  DATABASE    USER        CIDR-ADDRESS          METHOD
     # "local" is for Unix domain socket connections only
@@ -29,3 +29,5 @@ Make sure /etc/postgresql/[VERSION}/main/pg_hba.conf has the following lines:
     host    all         all         ::1/128               md5 
     # IPv6 local connections:
     #host    all         all         ::1/128               ident
+
+These instructions assume that you are deploying the database on the same host as the API.
