@@ -98,7 +98,7 @@ public class CachePaths {
                                 commuteIndex++;
                                 if(cacheType.equals(CACHE_DB)) {
                                     //commute(id serial primary key, start_id varchar, destination_id varchar, processing_time double precision)
-                                    String cQuery = "insert into commute(start_id, destination_id, processing_time) values(?, ?, ?)";
+                                    String cQuery = "insert into commute(stop_a_id, stop_b_id, processing_time) values(?, ?, ?)";
                                     Log.d(TAG, cQuery);
                                     PreparedStatement cps = databaseHandler.getConnection().prepareStatement(cQuery, Statement.RETURN_GENERATED_KEYS);
                                     cps.setString(1, stops.get(i).getId());
@@ -107,7 +107,7 @@ public class CachePaths {
                                     commuteId = databaseHandler.execInsertQuery(cps);
                                 }
                                 else if(cacheType.equals(CACHE_FILE)) {
-                                    String cQuery = "insert into commute(id, start_id, destination_id, processing_time) values(";
+                                    String cQuery = "insert into commute(id, stop_a_id, stop_b_id, processing_time) values(";
                                     cQuery = cQuery + String.valueOf(commuteId);
                                     cQuery = cQuery + ", '" + StringEscapeUtils.escapeSql(stops.get(i).getId()) + "'";
                                     cQuery = cQuery + ", '" + StringEscapeUtils.escapeSql(stops.get(j).getId()) + "'";
@@ -179,6 +179,8 @@ public class CachePaths {
                             }
                         }
                     }
+                    stops.remove(i);
+                    i--;
                 }
                 dataHandler.deleteFile(Data.BLOCK_PATH_CACHING);
             }

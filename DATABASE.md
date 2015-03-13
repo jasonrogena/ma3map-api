@@ -6,7 +6,7 @@ Setup the database by running the following commands (the database password used
     psql
     create database ma3map
     \c ma3map
-    create table commute(id serial primary key, start_id varchar, destination_id varchar, processing_time double precision);
+    create table commute(id serial primary key, stop_a_id varchar, stop_b_id varchar, processing_time double precision);
     create table commute_path(id serial primary key, score double precision, commute_id integer references commute(id));
     create table commute_step(id serial primary key, commute_path_id integer references commute_path(id), sequence integer, start_id varchar, destination_id varchar, route_id varchar);
     create user ma3map with nosuperuser nocreatedb nocreaterole noinherit login encrypted password 'kj432@cF23pl&d';
