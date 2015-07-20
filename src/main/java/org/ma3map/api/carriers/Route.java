@@ -214,7 +214,54 @@ public class Route {
 
         return closestStop;
     }
-    
+   
+    /**
+    * This methods gets stops shared between two routes
+    * 
+    * @param r1     The first route
+    * @param r2     The second route
+    * @return A list of the shared stops
+    */
+    public static ArrayList<Stop> getSharedStops(Route r1, Route r2) {
+        ArrayList<Stop> s1 = r1.getStops(0);
+        ArrayList<Stop> s2 = r2.getStops(0);
+        ArrayList<Stop> s = null;
+        Route r = null;
+        //determine which route stop list pair will have less comparisons to make
+        if(s1.size() < s2.size()) {
+            s = s1;
+            r = r2;
+        }
+        else {
+            s = s2;
+            r = r1;
+        }
+        ArrayList<Stop> commonS = new ArrayList<Stop>();
+        for(int i = 0; i < s.size(); i++) {
+            if(r.isStopInRoute(s.get(i))){
+                commonS.add(s.get(i));
+            }
+        }
+        return commonS;
+    }
+
+    /**
+    * This method returns a list of all the routes containing both the first and second provided stops
+    * 
+    * @param allRoutes  All the routes
+    * @param a          The first stop
+    * @param b          The second stop
+    * @return A list of all the routes containing both stop a and b
+    */
+    public static ArrayList<Route> getDirectServiceRoutes(ArrayList<Route> allRoutes, Stop a, Stop b) {
+        ArrayList<Route> serviceRoutes = new ArrayList<Route>();
+        for(int i = 0; i < allRoutes.size(); i++) {
+            if(allRoutes.get(i).isStopInRoute(a) && allRoutes.get(i).isStopInRoute(b)){
+                serviceRoutes.add(allRoutes.get(i));
+            }
+        }
+        return serviceRoutes;
+    } 
     
     /**
      * This method gets the GIS polyline corresponding to this route. Start and destination will be

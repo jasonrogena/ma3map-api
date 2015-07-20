@@ -1,6 +1,7 @@
 package org.ma3map.api.carriers;
 
 import java.util.Comparator;
+import java.util.ArrayList;
 
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
@@ -176,10 +177,20 @@ public class Stop {
     }
 
     public boolean equals(Stop comparison){
-        if(comparison.getLat().equals(lat) && comparison.getLon().equals(lon) && comparison.getName().equals(name)){
+        if(comparison.getLat().equals(lat) && comparison.getLon().equals(lon) && comparison.getId().equals(id)){
             return true;
         }
         return false;
+    }
+
+    public static ArrayList<Route> getServiceRoutes(ArrayList<Route> allRoutes, Stop stop) {
+        ArrayList<Route> sRoutes = new ArrayList<Route>();
+        for(int i = 0; i < allRoutes.size(); i++) {
+            if(allRoutes.get(i).isStopInRoute(stop)) {
+                sRoutes.add(allRoutes.get(i));
+            }
+        }
+        return sRoutes;
     }
     
     public static class DistanceComparator implements Comparator<Stop> {

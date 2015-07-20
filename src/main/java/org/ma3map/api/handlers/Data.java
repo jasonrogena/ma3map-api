@@ -47,6 +47,7 @@ public class Data extends ProgressHandler {
     private static final String CACHE_STOPS = "cache/stops.json";
     public static final String CACHE_PATHS = "cache/paths.sql";
     public static final String BLOCK_PATH_CACHING = "cache/.currently_caching_paths";
+    public static final String BLOCK_GRAPH_CREATION = "cache/.currently_creating_graph";
 
     /**
      * Default constructor for this class;

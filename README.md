@@ -39,6 +39,7 @@ This [Maven](https://maven.apache.org) project is very easy to deploy. Make sure
 
     openjdk-7-jdk
     maven
+    postgresql postgresql-contrib postgis postgresql-9.3-postgis-2.1
 
 Make sure you use OpenJDK 7 and not 6 or 8. Also make sure you point your JAVA_HOME to the right directory.
 

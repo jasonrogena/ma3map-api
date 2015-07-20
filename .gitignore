@@ -2,3 +2,4 @@ target
 *.swp
 cache
 *.log
+.DS_Store
