@@ -14,8 +14,8 @@ function Stop(d) {
 * This method checks if this stop is in the given line
 */
 Stop.prototype.isStopInLine = function(pointsInLine){
-   //var tDistance = 0.01;//100 metres
-   var tDistance = 10;//10 metres
+   var tDistance = 0.01;//100 metres
+   //var tDistance = 10;//10 metres
    for(var pIndex = 0; pIndex < pointsInLine.length; pIndex++){
       if(this.getDistance(pointsInLine[pIndex].point_lat, pointsInLine[pIndex].point_lon) < tDistance){
          return true;
@@ -36,10 +36,10 @@ Stop.prototype.getData = function() {
 * and the provided point
 */
 Stop.prototype.getDistance = function(pointLat, pointLon) {
-   var geolib = require('geolib');
-   var pointA = {latitude: data.stop_lat, longitude: data.stop_lon};
-   var pointB = {latitude: pointLat, longitude: pointLon};
-   var metreDistance = geolib.getDistance(pointA, pointB);
+   var distance = require('gps-distance');
+   /*var pointA = {latitude: data.stop_lat, longitude: data.stop_lon};
+   var pointB = {latitude: pointLat, longitude: pointLon};*/
+   var metreDistance = distance(data.stop_lat, data.stop_lon, pointLat, pointLon);
    return metreDistance;
    /*var rad = Math.PI/180;
    var R = 6371; // km
