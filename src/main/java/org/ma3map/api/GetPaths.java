@@ -1,6 +1,5 @@
 package org.ma3map.api;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.lang.System;
 import java.lang.Object;

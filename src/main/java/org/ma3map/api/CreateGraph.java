@@ -65,13 +65,13 @@ public class CreateGraph {
     }
 
     private void constructGraph() {
-        Graph graph = new Graph();
-        graph.deleteGraph();
         Data data = new Data();
         Log.i(TAG, "Getting all routes");
         ArrayList<Route> routes = data.getRouteData();
         Log.i(TAG, "Getting all stops");
         ArrayList<Stop> stops = data.getStopData();
+        Graph graph = new Graph(routes, stops);
+        graph.deleteGraph();
 
         //for each of the stops, get a list of all the routes that contain it
         Log.i(TAG, "Indexing stops and routes");
@@ -114,21 +114,11 @@ public class CreateGraph {
                 }
             }
         }
-        //test to see if graph works
-        graph.close();
-        graph = new Graph();
         graph.printGraphStats();
-        Node node1 = graph.getNode("0801UEN");//T-Mall
-        Node node2 = graph.getNode("0811KIN");//Uthiru Pentecostal
-        /*Iterable<WeightedPath> paths = */graph.getPaths(node1, node2);
-        graph.printGraphStats();
-        /*if(paths != null){
-            Iterator<WeightedPath> iterator = paths.iterator();
-            if(iterator.hasNext()){
-                WeightedPath currPath = iterator.next();
-                Log.i(TAG, "Current path has "+String.valueOf(currPath.length())+" nodes");
-            }
-        }*/
+        Node node1 = graph.getNode("0201PGF");
+        Node node2 = graph.getNode("0210KNJ");
+        ArrayList<org.ma3map.api.carriers.Path> paths = graph.getPaths(node1, node2);
+
         graph.close();
         data.deleteFile(Data.BLOCK_GRAPH_CREATION);
         Log.i(TAG, "Done creating the graph");

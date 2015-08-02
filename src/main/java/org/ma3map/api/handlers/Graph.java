@@ -1,5 +1,8 @@
 package org.ma3map.api.handlers;
 
+import org.ma3map.api.carriers.*;
+import org.ma3map.api.carriers.Path;
+import org.ma3map.api.handlers.Log;
 import org.neo4j.graphalgo.CostEvaluator;
 import org.neo4j.graphalgo.PathFinder;
 import org.neo4j.graphalgo.GraphAlgoFactory;
@@ -7,20 +10,12 @@ import org.neo4j.graphalgo.WeightedPath;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.schema.Schema;
-//import org.neo4j.graphdb.schema.IndexCreator;
 import org.neo4j.graphdb.index.UniqueFactory;
-import org.neo4j.graphdb.index.IndexManager;
-import org.neo4j.graphdb.index.Index;
 import org.neo4j.helpers.collection.IteratorUtil;
-import org.neo4j.kernel.EmbeddedGraphDatabase;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.io.File;
 import java.io.IOException;
-
-import org.ma3map.api.handlers.Log;
 
 import org.apache.commons.io.FileUtils;
 import org.neo4j.tooling.GlobalGraphOperations;
@@ -35,12 +30,26 @@ public class Graph {
     private final GraphDatabaseService graphDatabaseService;//very expensive to create, share across threads as much as possible
     private UniqueFactory.UniqueNodeFactory uniqueNodeFactory;
     private Schema schema;
+    private HashMap<String, Node> nodes;
+    private HashMap<String, Stop> stopMap;
+    private ArrayList<Route> routes;
 
-    public Graph() {
+    private enum RelTypes implements RelationshipType {
+        ARE_SISTERS,
+        ARE_NEIGHBOURS
+    }
+
+    public Graph(ArrayList<Route> routes, ArrayList<Stop> stops) {
         GraphDatabaseFactory graphDbFactory = new GraphDatabaseFactory();
         graphDatabaseService =  graphDbFactory.newEmbeddedDatabase(GRAPH_PATH);
         setIndexProperty();
         initUniqueFactory();
+        nodes = new HashMap<String, Node>();
+        this.routes = routes;
+        stopMap = new HashMap<String, Stop>();
+        for(int index = 0; index < stops.size(); index++) {
+            stopMap.put(stops.get(index).getId(), stops.get(index));
+        }
     }
     
     public boolean deleteGraph(){
@@ -121,7 +130,14 @@ public class Graph {
         Node result = null;
         Transaction tx = graphDatabaseService.beginTx();
         try {
-            result = uniqueNodeFactory.getOrCreate(NODE_PROPERTY_ID, id);
+            if(nodes.containsKey(id)){
+                result = nodes.get(id);
+            }
+            else {
+                result = uniqueNodeFactory.getOrCreate(NODE_PROPERTY_ID, id);
+                nodes.put(id, result);
+            }
+
             tx.success();
         }
         finally {
@@ -130,20 +146,35 @@ public class Graph {
         return result;
     }
     
-    public Iterable<WeightedPath> getPaths(Node node1, Node node2) {
-        Iterable<WeightedPath> paths = null;
+    public ArrayList<org.ma3map.api.carriers.Path> getPaths(Node node1, Node node2) {
+        ArrayList<org.ma3map.api.carriers.Path> stopPaths = new ArrayList<org.ma3map.api.carriers.Path>();
         if(node1 != null && node2 != null) {
             Transaction tx = graphDatabaseService.beginTx();
             try {
                 Log.d(TAG, "Getting paths between "+((String)node1.getProperty(NODE_PROPERTY_ID))+" and "+((String)node2.getProperty(NODE_PROPERTY_ID)));
-        	/*use Dijkstra's instead of A* because we still don't know how to estimate the weight of the remaining path given the already constructed path
-        	 * Brute force the damn thing!!
-        	 */
+                /*use Dijkstra's (instead of A*) Algorithm to get best path because we currently don't have a way of accurately estimating the
+                the cost of the unsolved path given the path we already have*/
                 Ma3mapCostEvaluator costEvaluator = new Ma3mapCostEvaluator();
                 PathFinder<WeightedPath> finder = GraphAlgoFactory.dijkstra(PathExpanders.allTypesAndDirections(), costEvaluator);
-                WeightedPath path = finder.findSinglePath(node1, node2);
-                Log.i(TAG, "Current path has "+String.valueOf(path.length())+" nodes");
-                //return finder.findAllPaths(node1, node2);
+                Iterable<WeightedPath> paths = finder.findAllPaths(node1, node2);
+                if(paths != null){
+                    Iterator<WeightedPath> pathIterator = paths.iterator();
+                    while(pathIterator.hasNext()){
+                        WeightedPath weightedPath = pathIterator.next();
+                        double weight = weightedPath.weight();
+                        ArrayList<Stop> stops = new ArrayList<Stop>();
+                        Iterable<Node> nodes = weightedPath.nodes();
+                        Iterator<Node> nodeIterator = nodes.iterator();
+                        while(nodeIterator.hasNext()) {
+                            Node currNode = nodeIterator.next();
+                            stops.add(stopMap.get(currNode.getProperty(NODE_PROPERTY_ID)));
+                        }
+                        org.ma3map.api.carriers.Path currPath = new Path(stops, weight);
+                        stopPaths.add(currPath);
+                    }
+                    Log.d(TAG, "Gotten "+String.valueOf(stopPaths.size())+" paths");
+                    Collections.sort(stopPaths, new Path.WeightComparator());
+                }
             }
             catch (Exception e) {
                 e.printStackTrace();
@@ -156,36 +187,16 @@ public class Graph {
         else {
             Log.e(TAG, "One of the provided nodes is null. Cannot get path");
         }
-    	return paths;
+    	return stopPaths;
     }
     
     public Node getNode(String id) {
 
-    	Transaction tx = graphDatabaseService.beginTx();
-        try {
-            /*IndexManager indexManager = graphDatabaseService.index();
-            Index<Node> allNodes = indexManager.forNodes(NODE_LABEL_STOP);
-            node = allNodes.get(NODE_PROPERTY_ID, id).getSingle();
-            tx.success();*/
-            Result result = graphDatabaseService.execute("match (n {"+NODE_PROPERTY_ID+": '"+id+"'}) return n");
-            Iterator<Node> nodes = result.columnAs("n");
-            ArrayList<Node> nodeList = new ArrayList<Node>();
-            for(Node node : IteratorUtil.asIterable(nodes)){
-                nodeList.add(node);
-            }
-            if(nodeList.size() == 1) {
-                return nodeList.get(0);
-            }
-            else if(nodeList.size() > 1){
-                Log.e(TAG, "More than one node returned with the id "+id);
-            }
-            else {
-                Log.e(TAG, "No node found with the id "+id);
-            }
-            tx.success();
+    	if(nodes.containsKey(id)){
+            return nodes.get(id);
         }
-        finally {
-            tx.finish();
+        else {
+            Log.w(TAG, "Could not find node with id = "+id);
         }
     	return null;
     }
@@ -195,8 +206,7 @@ public class Graph {
         Transaction tx = graphDatabaseService.beginTx();
         try {
             if(areSisters) {
-                Log.d(TAG, "Nodes are sisters");
-                distance = 0;
+                distance = distance/10;
             }
             Relationship relationship = null;
             if(areSisters) {
@@ -220,11 +230,6 @@ public class Graph {
         Log.i(TAG, "Closing connection to graph");
     }
 
-    private static enum RelTypes implements RelationshipType {
-        ARE_SISTERS,
-        ARE_NEIGHBOURS
-    }
-    
     private class Ma3mapCostEvaluator implements CostEvaluator<Double> {
 
         public Double getCost(Relationship relationship, Direction direction) {
