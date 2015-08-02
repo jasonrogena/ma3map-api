@@ -3,6 +3,7 @@ package org.ma3map.api;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.lang.System;
 import java.lang.Object;
@@ -18,6 +19,9 @@ import org.ma3map.api.handlers.Data;
 import org.ma3map.api.handlers.Graph;
 import org.ma3map.api.handlers.Log;
 import org.ma3map.api.listeners.ProgressListener;
+
+import org.neo4j.graphalgo.WeightedPath;
+import org.neo4j.graphdb.Node;
 
 import org.neo4j.graphdb.Node;
 
@@ -62,6 +66,7 @@ public class CreateGraph {
 
     private void constructGraph() {
         Graph graph = new Graph();
+        graph.deleteGraph();
         Data data = new Data();
         Log.i(TAG, "Getting all routes");
         ArrayList<Route> routes = data.getRouteData();
@@ -109,6 +114,21 @@ public class CreateGraph {
                 }
             }
         }
+        //test to see if graph works
+        graph.close();
+        graph = new Graph();
+        graph.printGraphStats();
+        Node node1 = graph.getNode("0801UEN");//T-Mall
+        Node node2 = graph.getNode("0811KIN");//Uthiru Pentecostal
+        /*Iterable<WeightedPath> paths = */graph.getPaths(node1, node2);
+        graph.printGraphStats();
+        /*if(paths != null){
+            Iterator<WeightedPath> iterator = paths.iterator();
+            if(iterator.hasNext()){
+                WeightedPath currPath = iterator.next();
+                Log.i(TAG, "Current path has "+String.valueOf(currPath.length())+" nodes");
+            }
+        }*/
         graph.close();
         data.deleteFile(Data.BLOCK_GRAPH_CREATION);
         Log.i(TAG, "Done creating the graph");

@@ -39,6 +39,7 @@ public class Data extends ProgressHandler {
     private static final String API_MA3MAP_URI_SEARCH = "/search";
     private static final String API_MA3MAP_URI_GET_PATHS = "/get_paths";
     private static final String API_MA3MAP_URI_CACHE_PATHS = "/cache_paths";
+    private static final String API_MA3MAP_URI_CREATE_GRAPH = "/create_graph";
 
     public static final String DIRECTIONS_WALKING = "walking";
     public static final String DIRECTIONS_DRIVING = "driving";
@@ -147,7 +148,7 @@ public class Data extends ProgressHandler {
     	return null;
     }
 
-    public void deleteFile(String filename) {
+    public static void deleteFile(String filename) {
          File file = new File(filename);
          if(file.exists()) {
              file.delete();
