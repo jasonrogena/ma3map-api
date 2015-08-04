@@ -49,4 +49,64 @@ public class Log {
 	public static void e(String tag, String message){
 		System.out.println(ANSI_RED+"E/"+tag+" "+message+ANSI_RESET);
 	}
+
+	/**
+	 * Logs progress messages. Don't print anything between p prints.
+	 * <p>
+	 * @param tag		The tag you want to give the message
+	 * @param message	The message to be logged
+	 */
+	public static void i(String tag, String message, int currIndex, int maxIndex) {
+		double noHashes = (double)(currIndex)/(double)maxIndex;
+		noHashes = noHashes*50;
+		String hashes = "";
+		for(int i = 0; i <= 50; i++) {
+			if(i <= noHashes) hashes += "#";
+			else hashes += " ";
+		}
+		noHashes = noHashes * 2;
+		double userFriendly = (double)Math.round(noHashes * 100)/100;
+		System.out.print("I/" + tag + " " + message + " [" + hashes + "] " + String.valueOf(userFriendly) + "%\r");
+		if(currIndex == maxIndex) System.out.println("");
+	}
+
+	/**
+	 * Logs progress info messages. Don't print anything progress prints
+	 * <p>
+	 * @param tag		The tag you want to give the message
+	 * @param message	The message to be logged
+	 */
+	public static void d(String tag, String message, int currIndex, int maxIndex) {
+		double noHashes = (double)(currIndex)/(double)maxIndex;
+		noHashes = noHashes*50;
+		String hashes = "";
+		for(int i = 0; i <= 50; i++) {
+			if(i <= noHashes) hashes += "#";
+			else hashes += " ";
+		}
+		noHashes = noHashes * 2;
+		double userFriendly = (double)Math.round(noHashes * 100)/100;
+		System.out.print("D/" + tag + " " + message + " [" + hashes + "] " + String.valueOf(userFriendly) + "%\r");
+		if(currIndex == maxIndex) System.out.println("");
+	}
+
+	/**
+	 * Logs progress debug messages. Don't print anything between progress prints.
+	 * <p>
+	 * @param tag		The tag you want to give the message
+	 * @param message	The message to be logged
+	 */
+	public static void w(String tag, String message, int currIndex, int maxIndex) {
+		double noHashes = (double)(currIndex)/(double)maxIndex;
+		noHashes = noHashes*50;
+		String hashes = "";
+		for(int i = 0; i <= 50; i++) {
+			if(i <= noHashes) hashes += "#";
+			else hashes += " ";
+		}
+		noHashes = noHashes * 2;
+		double userFriendly = (double)Math.round(noHashes * 100)/100;
+		System.out.print("W/" + tag + " " + message + " [" + hashes + "] " + String.valueOf(userFriendly) + "%\r");
+		if(currIndex == maxIndex) System.out.println("");
+	}
 }

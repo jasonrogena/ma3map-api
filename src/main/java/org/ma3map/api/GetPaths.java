@@ -3,6 +3,8 @@ package org.ma3map.api;
 import java.util.ArrayList;
 import java.lang.System;
 import java.lang.Object;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -12,14 +14,17 @@ import javax.ws.rs.Produces;
 import org.ma3map.api.carriers.Commute;
 import org.ma3map.api.carriers.LatLng;
 import org.ma3map.api.carriers.Route;
+import org.ma3map.api.carriers.Stop;
 import org.ma3map.api.handlers.BestPath;
 import org.ma3map.api.handlers.Data;
+import org.ma3map.api.handlers.Graph;
 import org.ma3map.api.handlers.Log;
 import org.ma3map.api.listeners.ProgressListener;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.neo4j.graphdb.Node;
 
 /**
  * @author Jason Rogena <jasonrogena@gmail.com>
@@ -47,7 +52,17 @@ public class GetPaths {
     private GetPathsProgressListener getPathsProgressListener;
     private long timeTaken;
     private final Object lock = new Object();
+    private final Graph graph;
+    private final ArrayList<Stop> stops;
+    private final ArrayList<Route> routes;
+    private Data dataHandler;
 
+    public GetPaths() {
+        dataHandler = new Data();
+        this.stops = dataHandler.getStopData();
+        this.routes = dataHandler.getRouteData();
+        this.graph = new Graph(routes, stops, true);
+    }
 
     /**
     * Entry point for the /get_paths endpoint
@@ -97,10 +112,6 @@ public class GetPaths {
             
             //check if to and from LatLngs are initialised
             if(toPoint != null && fromPoint != null) {
-                //1. get route data
-                Data dataHandler = new Data();
-                ArrayList<Route> routes = dataHandler.getRouteData();
-
                 //2. calculate best path
                 BestPath bestPathHandler = new BestPath(fromPoint, noFrom, toPoint, noTo, routes);
                 getPathsProgressListener = new GetPathsProgressListener(System.currentTimeMillis());
@@ -128,6 +139,7 @@ public class GetPaths {
                         pathArray.put(commutePath.get(i).getJSONObject());
                     }
                     jsonObject.put("paths", pathArray);
+                    graph.close();
                     return jsonObject.toString();
                 }
                 catch (JSONException e) {
@@ -155,11 +167,9 @@ public class GetPaths {
             this.startTime = startTime;
         }        
 
-        @Override
         public void onProgress(int progress, int end, String message, int flag) {
         }
 
-        @Override
         public void onDone(Object output, String message, int flag) {
             ArrayList<Commute> commutes = (ArrayList<Commute>) output;
 
@@ -194,6 +204,39 @@ public class GetPaths {
                     lock.notifyAll();
                 }
            }
+        }
+    }
+
+    private class StopPair {
+        private final Stop a;
+        private final Stop b;
+        public StopPair(Stop a, Stop b){
+            this.a = a;
+            this.b = b;
+        }
+
+        public boolean equals(StopPair otherPair) {
+            Stop otherA = otherPair.getA();
+            Stop otherB = otherPair.getB();
+            if(otherA.equals(a)){
+                if(otherB.equals(b)) {
+                    return true;
+                }
+            }
+            else if(otherA.equals(b)) {
+                if(otherB.equals(a)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public Stop getA() {
+            return a;
+        }
+
+        public Stop getB() {
+            return b;
         }
     }
 }

@@ -8,26 +8,32 @@ import org.neo4j.graphalgo.PathFinder;
 import org.neo4j.graphalgo.GraphAlgoFactory;
 import org.neo4j.graphalgo.WeightedPath;
 import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
+import org.neo4j.graphdb.factory.GraphDatabaseSettings;
+import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.graphdb.index.UniqueFactory;
+import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.collection.IteratorUtil;
 
 import java.util.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
+import org.neo4j.kernel.configuration.Config;
 import org.neo4j.tooling.GlobalGraphOperations;
 
 public class Graph {
-    private final String GRAPH_PATH = "cache/ma3map.neo4j";
+    private final String GRAPH_PATH = "cache/graph.db";
     private final String PROPERTY_DISTANCE = "distance";
     private final String UNIQUE_INDEX_STOPS = "stops";
     private final String NODE_LABEL_STOP = "stop";
     private final String NODE_PROPERTY_ID = "id";
     private static final String TAG = "ma3map.Graph";
-    private final GraphDatabaseService graphDatabaseService;//very expensive to create, share across threads as much as possible
+    private GraphDatabaseService graphDatabaseService;//very expensive to create, share across threads as much as possible
     private UniqueFactory.UniqueNodeFactory uniqueNodeFactory;
     private Schema schema;
     private HashMap<String, Node> nodes;
@@ -39,17 +45,58 @@ public class Graph {
         ARE_NEIGHBOURS
     }
 
-    public Graph(ArrayList<Route> routes, ArrayList<Stop> stops) {
+    public Graph(ArrayList<Route> routes, ArrayList<Stop> stops, boolean readOnly) {
         GraphDatabaseFactory graphDbFactory = new GraphDatabaseFactory();
-        graphDatabaseService =  graphDbFactory.newEmbeddedDatabase(GRAPH_PATH);
-        setIndexProperty();
-        initUniqueFactory();
+        GraphDatabaseBuilder databaseBuilder = graphDbFactory.newEmbeddedDatabaseBuilder(GRAPH_PATH)
+                .setConfig(GraphDatabaseSettings.allow_store_upgrade, "true")
+                .setConfig( GraphDatabaseSettings.pagecache_memory, "512M")
+                .setConfig(GraphDatabaseSettings.string_block_size, "60")
+                .setConfig(GraphDatabaseSettings.array_block_size, "300");
+        if(readOnly == true) databaseBuilder.setConfig(GraphDatabaseSettings.read_only, "true");
+        graphDatabaseService = databaseBuilder.newGraphDatabase();
+
         nodes = new HashMap<String, Node>();
+
+        if(readOnly == false) {
+            setIndexProperty();
+            initUniqueFactory();
+        }
+        else {
+            printGraphStats();
+            loadNodes();
+        }
         this.routes = routes;
         stopMap = new HashMap<String, Stop>();
         for(int index = 0; index < stops.size(); index++) {
             stopMap.put(stops.get(index).getId(), stops.get(index));
         }
+        // Registers a shutdown hook for the Neo4j instance so that it
+        // shuts down nicely when the VM exits (even if you "Ctrl-C" the
+        // running application).
+        Runtime.getRuntime().addShutdownHook( new Thread()
+        {
+            @Override
+            public void run()
+            {
+                graphDatabaseService.shutdown();
+            }
+        } );
+    }
+
+    private void loadNodes() {
+        nodes = new HashMap<String, Node>();
+        Transaction tx = graphDatabaseService.beginTx();
+        try {
+            for(Node currNode : GlobalGraphOperations.at(graphDatabaseService).getAllNodes()) {
+                nodes.put((String)currNode.getProperty(NODE_PROPERTY_ID), currNode);
+            }
+            Log.d(TAG, "Loaded " + String.valueOf(nodes.size()) + " nodes");
+            tx.success();
+        }
+        finally {
+            tx.close();
+        }
+
     }
     
     public boolean deleteGraph(){
@@ -71,22 +118,11 @@ public class Graph {
         Transaction tx = graphDatabaseService.beginTx();
         try {
             Log.d(TAG, "Number of nodes in the graph = "+String.valueOf(IteratorUtil.count(GlobalGraphOperations.at(graphDatabaseService).getAllNodes())));
-            Iterable<Node> nodes = GlobalGraphOperations.at(graphDatabaseService).getAllNodes();
-            //Iterator<Node> iterator = nodes.();
-            int count = 0;
-            for(Node currNode: nodes) {
-                count++;
-                if(count%1000 == 0){
-                    Log.d(TAG, "Node at "+String.valueOf(count)+" has id = "+currNode.getProperty(NODE_PROPERTY_ID));
-                }
-
-
-            }
-            Log.d(TAG, "Number of relationships = "+String.valueOf(IteratorUtil.count(GlobalGraphOperations.at(graphDatabaseService).getAllRelationships())));
+            Log.d(TAG, "Number of relationships = " + String.valueOf(IteratorUtil.count(GlobalGraphOperations.at(graphDatabaseService).getAllRelationships())));
             tx.success();
         }
         finally {
-            tx.finish();
+            tx.close();
         }
 
     }
@@ -106,7 +142,7 @@ public class Graph {
             tx.success();
         }
         finally {
-            tx.finish();
+            tx.close();
         }
     }
 
@@ -115,14 +151,15 @@ public class Graph {
         try {
             if(schema == null) {
                 schema = graphDatabaseService.schema();
-                schema.indexFor(DynamicLabel.label(NODE_LABEL_STOP))
+                IndexDefinition indexDefinition = schema.indexFor(DynamicLabel.label(NODE_LABEL_STOP))
                         .on(NODE_PROPERTY_ID)
                         .create();
+                //schema.awaitIndexOnline(indexDefinition, 10, TimeUnit.SECONDS);
             }
             tx.success();
         }
         finally {
-            tx.finish();
+            tx.close();
         }
     }
 
@@ -134,14 +171,15 @@ public class Graph {
                 result = nodes.get(id);
             }
             else {
-                result = uniqueNodeFactory.getOrCreate(NODE_PROPERTY_ID, id);
+                //result = uniqueNodeFactory.getOrCreate(NODE_PROPERTY_ID, id);
+                result = graphDatabaseService.createNode();
+                result.setProperty(NODE_PROPERTY_ID, id);
                 nodes.put(id, result);
             }
-
             tx.success();
         }
         finally {
-            tx.finish();
+            tx.close();
         }
         return result;
     }
@@ -175,13 +213,14 @@ public class Graph {
                     Log.d(TAG, "Gotten "+String.valueOf(stopPaths.size())+" paths");
                     Collections.sort(stopPaths, new Path.WeightComparator());
                 }
+                tx.success();
             }
             catch (Exception e) {
                 e.printStackTrace();
                 Log.e(TAG, "An error occurred while trying to find paths");
             }
             finally {
-                tx.finish();
+                tx.close();
             }
         }
         else {
@@ -216,11 +255,11 @@ public class Graph {
                 relationship = node1.createRelationshipTo(node2, RelTypes.ARE_NEIGHBOURS);
             }
             relationship.setProperty(PROPERTY_DISTANCE, new Double(distance));
-            tx.success();
             result = true;
+            tx.success();
         }
         finally {
-            tx.finish();
+            tx.close();
         }
         return result;
     }

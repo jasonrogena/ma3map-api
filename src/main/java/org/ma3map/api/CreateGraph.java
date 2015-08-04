@@ -15,6 +15,7 @@ import javax.ws.rs.Produces;
 
 import org.ma3map.api.carriers.Route;
 import org.ma3map.api.carriers.Stop;
+import org.ma3map.api.carriers.StopPair;
 import org.ma3map.api.handlers.Data;
 import org.ma3map.api.handlers.Graph;
 import org.ma3map.api.handlers.Log;
@@ -70,13 +71,13 @@ public class CreateGraph {
         ArrayList<Route> routes = data.getRouteData();
         Log.i(TAG, "Getting all stops");
         ArrayList<Stop> stops = data.getStopData();
-        Graph graph = new Graph(routes, stops);
+        Graph graph = new Graph(routes, stops, false);
         graph.deleteGraph();
 
         //for each of the stops, get a list of all the routes that contain it
-        Log.i(TAG, "Indexing stops and routes");
         Map<String, ArrayList<String>> stopRoutes = new HashMap<String, ArrayList<String>>();
         for(int sIndex = 0; sIndex < stops.size(); sIndex++) {
+            Log.i(TAG, "Indexing stops and routes", (sIndex + 1), stops.size());
             Stop currStop = stops.get(sIndex);
             ArrayList<String> routesWithCurrStop = new ArrayList<String>();
             for(int rIndex = 0; rIndex < routes.size(); rIndex++) {
@@ -84,14 +85,13 @@ public class CreateGraph {
                     routesWithCurrStop.add(routes.get(rIndex).getId());
                 }
             }
-            Log.d(TAG, currStop.getId()+" in "+String.valueOf(routesWithCurrStop.size())+" routes");
             stopRoutes.put(currStop.getId(), routesWithCurrStop);
         }
         Log.i(TAG, "Number of indexed stops = "+String.valueOf(stopRoutes.size()));
         ArrayList<StopPair> stopPairs = new ArrayList<StopPair>();
         //now compare pairs of all the stops and add them to the graph
         for(int sIndex = 0; sIndex < stops.size(); sIndex++) {
-            Log.i(TAG, "Processing stop "+String.valueOf(sIndex + 1)+" of "+String.valueOf(stops.size()));
+            Log.i(TAG, "Adding stops to graph", (sIndex + 1), stops.size());
             Stop currStop = stops.get(sIndex);
             if(stopRoutes.get(currStop.getId()).size() > 0){
                 for(int oIndex = 0; oIndex < stops.size(); oIndex++) {
@@ -115,45 +115,12 @@ public class CreateGraph {
             }
         }
         graph.printGraphStats();
-        Node node1 = graph.getNode("0201PGF");
+        Node node1 = graph.getNode("0311BAO");
         Node node2 = graph.getNode("0210KNJ");
         ArrayList<org.ma3map.api.carriers.Path> paths = graph.getPaths(node1, node2);
 
         graph.close();
         data.deleteFile(Data.BLOCK_GRAPH_CREATION);
         Log.i(TAG, "Done creating the graph");
-    }
-
-    private class StopPair {
-        private final Stop a;
-        private final Stop b;
-        public StopPair(Stop a, Stop b){
-            this.a = a;
-            this.b = b;
-        }
-
-        public boolean equals(StopPair otherPair) {
-            Stop otherA = otherPair.getA();
-            Stop otherB = otherPair.getB();
-            if(otherA.equals(a)){
-                if(otherB.equals(b)) {
-                    return true;
-                }
-            }
-            else if(otherA.equals(b)) {
-                if(otherB.equals(a)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public Stop getA() {
-            return a;
-        }
-
-        public Stop getB() {
-            return b;
-        }
     }
 }
