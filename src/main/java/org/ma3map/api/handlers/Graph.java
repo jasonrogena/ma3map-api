@@ -2,6 +2,8 @@ package org.ma3map.api.handlers;
 
 import org.ma3map.api.carriers.*;
 import org.ma3map.api.carriers.Path;
+import org.ma3map.api.handlers.Log;
+
 import org.neo4j.graphalgo.CostEvaluator;
 import org.neo4j.graphalgo.PathFinder;
 import org.neo4j.graphalgo.GraphAlgoFactory;
@@ -25,6 +27,7 @@ import org.neo4j.kernel.configuration.Config;
 import org.neo4j.tooling.GlobalGraphOperations;
 
 public class Graph {
+
     private final String GRAPH_PATH = "cache/graph.neo4j";
     private final String PROPERTY_DISTANCE = "distance";
     private final String UNIQUE_INDEX_STOPS = "stops";
@@ -106,7 +109,7 @@ public class Graph {
         finally {
             tx.close();
             //tx.finish();
-        }
+       }
 
     }
     

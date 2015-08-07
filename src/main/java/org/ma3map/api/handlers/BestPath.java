@@ -147,9 +147,9 @@ public class BestPath extends ProgressHandler {
      * @return  A <code>Commute</code> object containing a complete path from a potential from <code>Stop</code>
      *          to a potential to <code>Stop</code> or <code>null</code> if no path is found
      *
-     * @see ke.co.ma3map.android.carriers.Commute
-     * @see ke.co.ma3map.android.carriers.Route
-     * @see ke.co.ma3map.android.carriers.Stop
+     * @see org.ma3map.api.carriers.Commute
+     * @see org.ma3map.api.carriers.Route
+     * @see org.ma3map.api.carriers.Stop
      */
     private Commute getBestCommute(Commute commute, ArrayList<String> noGoRouteIDs){
         ArrayList<Route> nodes = commute.getMatatuRoutes();
@@ -334,8 +334,8 @@ public class BestPath extends ProgressHandler {
      *              to this class
      *
      * @return  An ArrayList with <code>routes</code> that contain the provided <code>stop</code>
-     * @see ke.co.ma3map.android.carriers.Route
-     * @see ke.co.ma3map.android.carriers.Stop
+     * @see org.ma3map.api.carriers.Route
+     * @see org.ma3map.api.carriers.Stop
      */
     private ArrayList<Route> getRoutesWithStop(Stop stop){
         ArrayList<Route> stopRoutes = new ArrayList<Route>();
