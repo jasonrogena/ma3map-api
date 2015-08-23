@@ -6,10 +6,13 @@ import java.lang.Object;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 
 import org.ma3map.api.carriers.Commute;
 import org.ma3map.api.carriers.LatLng;
@@ -40,7 +43,7 @@ import org.neo4j.graphdb.Node;
  *  <p>
  * GPS coordinates from the client should be of the form <code>latitude,longitude</code>
  */
-@Path("/get_paths")
+@Path("/get-paths")
 public class GetPaths {
 
     private static final String TAG = "ma3map.GetPaths";
@@ -52,27 +55,29 @@ public class GetPaths {
     private GetPathsProgressListener getPathsProgressListener;
     private long timeTaken;
     private final Object lock = new Object();
-    private final Graph graph;
     private final ArrayList<Stop> stops;
     private final ArrayList<Route> routes;
     private Data dataHandler;
+
+    @Inject
+    Graph graph;
 
     public GetPaths() {
         dataHandler = new Data();
         this.stops = dataHandler.getStopData();
         this.routes = dataHandler.getRouteData();
-        this.graph = new Graph(routes, stops, true);
     }
 
     /**
-    * Entry point for the /get_paths endpoint
+    * Entry point for the /get-paths endpoint
     *
     * @return Stringified JSONArray of the alternative paths
     */
     @GET
-    @Produces("application/json")
+    @Produces(MediaType.TEXT_PLAIN)
     public String start(@QueryParam("from") String fromString, @QueryParam("to") String toString, @QueryParam("no_from_stops") String noFromStops, @QueryParam("no_to_stops") String noToStops) {
         Log.i(TAG, "API called");
+        graph.printGraphStats();
         int noFrom = BestPath.MAX_FROM_POINTS;
         int noTo = BestPath.MAX_TO_POINTS;
         if(noFromStops != null && noFromStops.length() > 0) {
@@ -139,7 +144,7 @@ public class GetPaths {
                         pathArray.put(commutePath.get(i).getJSONObject());
                     }
                     jsonObject.put("paths", pathArray);
-                    graph.close();
+                    //graph.close();
                     return jsonObject.toString();
                 }
                 catch (JSONException e) {

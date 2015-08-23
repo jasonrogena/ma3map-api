@@ -17,6 +17,7 @@ import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.graphdb.index.UniqueFactory;
 import org.neo4j.helpers.collection.IteratorUtil;
 
+import java.io.Serializable;
 import java.util.*;
 import java.io.File;
 import java.io.IOException;
@@ -26,9 +27,10 @@ import org.apache.commons.io.FileUtils;
 import org.neo4j.kernel.configuration.Config;
 import org.neo4j.tooling.GlobalGraphOperations;
 
-public class Graph {
+public class Graph implements Serializable {
 
-    private final String GRAPH_PATH = "cache/graph.neo4j";
+    public static final String KEY = "Graph";
+    private final String GRAPH_PATH = "/tmp/graph.neo4j";
     private final String PROPERTY_DISTANCE = "distance";
     private final String UNIQUE_INDEX_STOPS = "stops";
     private final String NODE_LABEL_STOP = "stop";
@@ -60,7 +62,6 @@ public class Graph {
         else {
             databaseBuilder.setConfig(GraphDatabaseSettings.read_only, "false");
             databaseBuilder.setConfig(GraphDatabaseSettings.batched_writes, "true");
-            databaseBuilder.setConfig(GraphDatabaseSettings.dump_configuration, "true");
         }
         graphDatabaseService = databaseBuilder.newGraphDatabase();
 

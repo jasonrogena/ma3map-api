@@ -1,6 +1,7 @@
 package org.ma3map.api;
 
 import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.ma3map.api.carriers.Route;
@@ -33,9 +34,8 @@ public class Server {
     public static HttpServer startServer() {
         // create a resource config that scans for JAX-RS resources and providers
         // in org.ma3map.api package
-        final Graph graph = buildGraph();
         final ResourceConfig rc = new ResourceConfig().packages("org.ma3map.api");
-
+        rc.register(new GraphBinder());
         // create and start a new instance of grizzly http server
         // exposing the Jersey application at BASE_URI
         return GrizzlyHttpServerFactory.createHttpServer(URI.create(BASE_URI), rc);
@@ -54,7 +54,7 @@ public class Server {
         server.shutdown();
     }
 
-    private static Graph buildGraph(){
+    private static Graph buildGraph() {
         Data dataHandler = new Data();
         ArrayList<Stop> stops = dataHandler.getStopData();
         ArrayList<Route> routes = dataHandler.getRouteData();
@@ -111,6 +111,15 @@ public class Server {
             Log.i(TAG, "Done creating the graph");
         }
         return graph;
+    }
+
+    public static class GraphBinder extends AbstractBinder {
+
+        @Override
+        protected void configure() {
+            Graph graph = buildGraph();
+            bind(graph).to(Graph.class);
+        }
     }
 }
 
