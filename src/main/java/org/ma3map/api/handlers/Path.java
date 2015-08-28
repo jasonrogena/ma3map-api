@@ -2,6 +2,8 @@ package org.ma3map.api.handlers;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.ma3map.api.carriers.Commute;
 import org.ma3map.api.carriers.LatLng;
@@ -54,8 +56,8 @@ import org.ma3map.api.listeners.ProgressListener;
  * @see <a href="https://dl.google.com/eclipse/plugin/4.4">1. D. Delling, A. Goldberg, and R. Werneck. Faster Batched Shortest Paths in Road Networks. (Accessed 18th Jan 2015)</a>
  * @see <a href="http://algo2.iti.kit.edu/download/diss_geisberger.pdf">2. R. Geisberger, et al. Advanced Route Planning in Transportation Networks. (Accessed 16th Jan 2015)</a>
  */
-public class BestPath extends ProgressHandler {
-	private static final String TAG = "ma3map.BestPath";
+public class Path extends ProgressHandler {
+	private static final String TAG = "ma3map.Path";
     private static final int MAX_COMMUTES = 10;//the maximum number of commutes to be generated
     private static final int MAX_NODES = 2;//the maximum number of routes (nodes) that should be in a commute
     private static final double MAX_WALKING_DISTANCE = 1000;//the maximum distance allowed for waliking when connecting nodes (routes)
@@ -66,19 +68,43 @@ public class BestPath extends ProgressHandler {
     private final ArrayList<Stop> to;
     private final LatLng actualTo;
     private final ArrayList<Route> routes;
+    private final HashMap<String, Route> routeMap;
+    private final ArrayList<Stop> stops;
     private final ArrayList<Commute> allCommutes;
     private int bestPathThreadIndex;
     private int noFromStops;
     private int noToStops;
+    private Graph graph;
+    private HashMap<String, ArrayList<String>> stopRoutes;
     
-    public BestPath(LatLng actualFrom, int noFromStops, LatLng actualTo, int noToStops, ArrayList<Route> routes){
+    public Path(LatLng actualFrom, int noFromStops, LatLng actualTo, int noToStops, Graph graph, ArrayList<Route> routes, ArrayList<Stop> stops){
+        this.graph = graph;
     	this.actualFrom = actualFrom;
         this.noFromStops = noFromStops;
         this.noToStops = noToStops;
     	this.actualTo = actualTo;
     	this.routes = routes;
+        routeMap = new HashMap<String, Route>();
+        for(int index = 0; index < routes.size(); index++) {
+            routeMap.put(routes.get(index).getId(), routes.get(index));
+        }
+        this.stops = stops;
     	allCommutes = new ArrayList<Commute>();
     	bestPathThreadIndex = 0;
+
+        //for each of the stops, get a list of all the routes that contain it
+        stopRoutes = new HashMap<String, ArrayList<String>>();
+        for (int sIndex = 0; sIndex < stops.size(); sIndex++) {
+            Log.i(TAG, "Indexing stops and routes", (sIndex + 1), stops.size());
+            Stop currStop = stops.get(sIndex);
+            ArrayList<String> routesWithCurrStop = new ArrayList<String>();
+            for (int rIndex = 0; rIndex < routes.size(); rIndex++) {
+                if (routes.get(rIndex).isStopInRoute(currStop)) {
+                    routesWithCurrStop.add(routes.get(rIndex).getId());
+                }
+            }
+            stopRoutes.put(currStop.getId(), routesWithCurrStop);
+        }
     	
     	//get closest stops to source and destination
         Log.d(TAG, "Getting all stops");
@@ -118,7 +144,7 @@ public class BestPath extends ProgressHandler {
         Collections.sort(toStops, new Stop.DistanceComparator(actualTo));//stop closest to destination becomes first
         to = new ArrayList<Stop>();
         to.addAll(toStops.subList(0, this.noToStops));
-        Log.d(TAG, "Done initializing BestPath");
+        Log.d(TAG, "Done initializing Path");
     }
     
     public void calculatePaths(){
@@ -141,8 +167,6 @@ public class BestPath extends ProgressHandler {
      *  -   Number of <code>routes</code> in provided <code>commute</code> have surpassed {@link #MAX_NODES}
      * <p>
      * @param commute       Commute object carrying the current route path being constructed
-     * @param noGoRouteIDs  A list of IDs corresponding to routes that should not be considered as the
-     *                      next possible route. Use <code>route.getId()</code> to get a route's ID
      *
      * @return  A <code>Commute</code> object containing a complete path from a potential from <code>Stop</code>
      *          to a potential to <code>Stop</code> or <code>null</code> if no path is found
@@ -151,127 +175,67 @@ public class BestPath extends ProgressHandler {
      * @see org.ma3map.api.carriers.Route
      * @see org.ma3map.api.carriers.Stop
      */
-    private Commute getBestCommute(Commute commute, ArrayList<String> noGoRouteIDs){
-        ArrayList<Route> nodes = commute.getMatatuRoutes();
-
-        Log.d(TAG, "Getting best path for node list with "+nodes.get(0).getShortName()+" as first node");
-        Log.d(TAG, " ** node list has "+nodes.size()+" before processing");
-        Log.d(TAG, " ** noGoRouteIDs has "+noGoRouteIDs.size()+" nodes");
-        //check if last node has stop
-        Route lastNode = nodes.get(nodes.size() - 1);
-        Log.d(TAG, "Last node is "+lastNode.getShortName());
-
-        boolean toIsInRoute = false;
-
+    private Commute getBestCommute(Stop from){
+        Commute commute = new Commute(actualFrom, actualTo);
+        Commute.Step firstStep = new Commute.Step(Commute.Step.TYPE_MATATU, null, from, null);
+        commute.addStep(firstStep);
+        Stop firstStop = commute.getStep(0).getStart();
+        org.ma3map.api.carriers.Path bestPath = null;
         for(int toIndex = 0; toIndex < to.size(); toIndex++){//still assumes that to stops are ordered in terms of closeness to actual destination
             Stop currTo = to.get(toIndex);
-            if(lastNode.isStopInRoute(currTo)){
-                Commute.Step tmpStep = commute.getStep(commute.getSteps().size() - 1);
-                if(tmpStep.getStepType() == Commute.Step.TYPE_MATATU){
-                    commute.setStep(commute.getSteps().size() - 1, new Commute.Step(tmpStep.getStepType(), tmpStep.getRoute(), tmpStep.getStart(), currTo));
+            ArrayList<org.ma3map.api.carriers.Path> currPaths = graph.getPaths(graph.getNode(firstStop.getId()), graph.getNode(currTo.getId()));
+            org.ma3map.api.carriers.Path currBestPath = null;
+            for (int pathIndex = 0; pathIndex < currPaths.size(); pathIndex++){
+                if(currBestPath == null || currBestPath.getStops().size() > currPaths.get(pathIndex).getStops().size()) {
+                    currBestPath = currPaths.get(pathIndex);
                 }
-                toIsInRoute = true;
-                break;
+            }
+            if(currBestPath != null) {
+                if(bestPath == null || bestPath.getStops().size() > currBestPath.getStops().size()) {
+                    bestPath = currBestPath;
+                }
             }
         }
-
-        if(!toIsInRoute){
-            //last node does not have the destination
-
-            //check if enough commute alternatives have been gotten
-            if(allCommutes.size() > MAX_COMMUTES){
-                return null;
-            }
-
-            //check if we have reached the maxNode limit
-            if(nodes.size() > MAX_NODES){
-                Log.d(TAG, "Node list already has a maximum number of nodes. Returning null");
-                //max nodes reached and last node does not have destination, return null
-                return null;
-            }
-
-            //check if all routes have been traversed
-            if(noGoRouteIDs.size() >= routes.size()){
-                Log.d(TAG, "Node list already has all possible routes. Returning null");
-                //all routes have been traversed, no route to destination found
-                return null;
-            }
-
-            //get all routes that are linked to this route
-            //and determine which is the best path
-            Log.d(TAG, "Getting all routes linked to last node = "+lastNode.getShortName());
-            Commute bestCommute = null;
-            ArrayList<Stop> nodeStops = lastNode.getStops(0);
-            Log.d(TAG, "Last node has "+nodeStops.size()+" stops");
-            for (int rIndex = 0; rIndex < routes.size(); rIndex++) {
-                final Route currReferenceRoute = routes.get(rIndex);
-                for(int sIndex = 0; sIndex < nodeStops.size(); sIndex++) {
-                    final Stop currReferenceStop = nodeStops.get(sIndex);
-                    double distanceToStop = currReferenceRoute.getDistanceToStop(currReferenceStop);//if stop is in route, distance is going to be 0
-                    /*double distanceToStop = -1;
-                    if(currReferenceRoute.isStopInRoute(currReferenceStop)){
-                        distanceToStop = 0;
-                    }*/
-                    //search for routeID in noGoRouteIDs
-                    boolean checkRoute = true;
-                    for(String searchID : noGoRouteIDs){
-                        if(searchID.equals(currReferenceRoute.getId())){
-                            checkRoute = false;
-                            break;
-                        }
+        if(bestPath != null) {
+            ArrayList<Stop> stops = bestPath.getStops();
+            commute.setNoStops(stops.size());
+            if(stops.get(0).getId().equals(firstStop.getId())) {
+                for(int stopIndex = 1; stopIndex < stops.size(); stopIndex++) {
+                    Stop nextStop = stops.get(stopIndex);
+                    ArrayList<Route> commonRoutes = getCommonRoutes(firstStop, nextStop);
+                    if(commonRoutes.size() > 0) {
+                        commute.setStep(commute.getSteps().size() - 1, new Commute.Step(Commute.Step.TYPE_MATATU, commonRoutes.get(0), firstStop, nextStop));
                     }
-
-                    //check if nodeStops(sIndex) is also starting point for last node
-                    Stop startForLastNode = commute.getSteps().get(commute.getSteps().size() - 1).getStart();
-                    if(startForLastNode.equals(currReferenceStop)){
-                        checkRoute = false;
-                    }
-                    if (checkRoute == true
-                            && distanceToStop != -1 && distanceToStop < MAX_WALKING_DISTANCE) {
-                        Log.d(TAG, "** Checking route with index = "+rIndex+" of "+routes.size());
-                        ArrayList<String> newNoGoRouteIDs = new ArrayList<String>();
-                        newNoGoRouteIDs.add(currReferenceRoute.getId());
-                        newNoGoRouteIDs.addAll(noGoRouteIDs);
-
-                        Commute newCommute = new Commute(actualFrom, actualTo);
-                        newCommute.setSteps(commute.getSteps());
-                        Commute.Step tmpStep = commute.getStep(newCommute.getSteps().size() - 1);
-                        if(tmpStep.getStepType() == Commute.Step.TYPE_MATATU){
-                            newCommute.setStep(newCommute.getSteps().size() - 1, new Commute.Step(tmpStep.getStepType(), tmpStep.getRoute(), tmpStep.getStart(), currReferenceStop));
-                        }
-
-                        //add walking step if necessary
-                        if(distanceToStop > 0){
-                            Commute.Step walkingStep = new Commute.Step(Commute.Step.TYPE_WALKING, null, currReferenceStop, currReferenceRoute.getClosestStop(currReferenceStop));
-                            newCommute.addStep(walkingStep);
-                        }
-                        Commute.Step matatuStep = new Commute.Step(Commute.Step.TYPE_MATATU, currReferenceRoute, currReferenceRoute.getClosestStop(currReferenceStop), null);
-                        newCommute.addStep(matatuStep);
-
-                        Commute currBestCommute = getBestCommute(newCommute, newNoGoRouteIDs);
-                        if(currBestCommute != null){
-                            Log.d(TAG, "Current commute score = "+currBestCommute.getScore());
-                        }
-                        if(bestCommute != null){
-                            Log.d(TAG, "Current best commute score = "+bestCommute.getScore());
+                    else {
+                        //create a walking step
+                        Stop startForWalk = commute.getStep(commute.getSteps().size() - 1).getDestination();
+                        if(commute.getStep(commute.getSteps().size() - 1).getStepType() == Commute.Step.TYPE_MATATU) {
+                            Log.d(TAG, "Step type is matatu");
                         }
                         else {
-                            Log.d(TAG, "Best commute not set yet. Current commute will be best");
+                            Log.d(TAG, "Step type is walking");
                         }
-
-                        if(bestCommute == null || (currBestCommute != null && currBestCommute.getScore() < bestCommute.getScore())){
-                            bestCommute = currBestCommute;
+                        if(startForWalk != null){
+                            commute.addStep(new Commute.Step(Commute.Step.TYPE_WALKING, null, startForWalk,nextStop));
+                            //create matatu step
+                            firstStop = nextStop;
+                            commute.addStep(new Commute.Step(Commute.Step.TYPE_MATATU, null, firstStop, null));
                         }
-                        if(currBestCommute!= null) break;//don't iterate through any other stops in the last node to be compared with the current route
+                        else {
+                            Log.e(TAG, "The last matatu step does not have a destination. Cannot continue constructing path");
+                            return null;
+                        }
                     }
                 }
-
             }
-
-            //Log.d(TAG, "Best path has "+bestPath.size()+" nodes");
-            return bestCommute;
+            else {
+                Log.e(TAG, "The first stop in the path is not the expected one");
+                return null;
+            }
         }
-        Log.d(TAG, "To stop is in the last node. Node list complete. Returning list");
+        else {
+            return null;
+        }
         return commute;
     }
     
@@ -289,28 +253,9 @@ public class BestPath extends ProgressHandler {
 		public void run() {
 			final ArrayList<Commute> commutes = new ArrayList<Commute>();
             Log.d(TAG, "########################################");
-            ArrayList<Route> fromRoutes = getRoutesWithStop(from);
-            Log.d(TAG, "From point in "+fromRoutes.size()+" routes");
-
-            //check if to point in any of the
-            for(int index = 0; index < fromRoutes.size(); index++){
-                Log.d(TAG, "*********************************");
-                ArrayList<String> noGoRouteIDs = new ArrayList<String>();
-                for(int j = 0; j < fromRoutes.size(); j++){
-                    noGoRouteIDs.add(fromRoutes.get(j).getId());
-                }
-
-                //ArrayList<Route> currNodes = new ArrayList<Route>();
-                //currNodes.add(fromRoutes.get(index));
-                Commute currCommute = new Commute(actualFrom, actualTo);
-                Commute.Step firstStep = new Commute.Step(Commute.Step.TYPE_MATATU, fromRoutes.get(index), from, null);
-                currCommute.addStep(firstStep);
-                Commute resultantBestCommute = getBestCommute(currCommute, noGoRouteIDs);
-                if(resultantBestCommute != null) {
-                    commutes.add(resultantBestCommute);
-                }
-                //Log.d(TAG, "Current path has "+currBestPath.size() + " routes");
-                Log.d(TAG, "*********************************");
+            Commute resultantBestCommute = getBestCommute(from);
+            if(resultantBestCommute != null) {
+                commutes.add(resultantBestCommute);
             }
             Log.d(TAG, "########################################");
             
@@ -347,5 +292,21 @@ public class BestPath extends ProgressHandler {
         }
 
         return stopRoutes;
+    }
+
+    private ArrayList<Route> getCommonRoutes(Stop stopA, Stop stopB) {
+        ArrayList<Route> commonRoutes = new ArrayList<Route>();
+        ArrayList<String> commonRouteIds = stopRoutes.get(stopA.getId());
+        commonRouteIds.retainAll(stopRoutes.get(stopB.getId()));
+        for(int index = 0; index < commonRouteIds.size(); index++) {
+            Log.d(TAG, "Route has id = "+commonRouteIds.get(index));
+            if(routeMap.get(commonRouteIds.get(index)) != null) {
+                commonRoutes.add(routeMap.get(commonRouteIds.get(index)));
+            }
+            else{
+                Log.e(TAG, "One of the common routes is null. Not adding it");
+            }
+        }
+        return commonRoutes;
     }
 }

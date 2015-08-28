@@ -30,7 +30,7 @@ import org.neo4j.tooling.GlobalGraphOperations;
 public class Graph implements Serializable {
 
     public static final String KEY = "Graph";
-    private final String GRAPH_PATH = "/tmp/graph.neo4j";
+    private final String GRAPH_PATH = "cache/graph.neo4j";
     private final String PROPERTY_DISTANCE = "distance";
     private final String UNIQUE_INDEX_STOPS = "stops";
     private final String NODE_LABEL_STOP = "stop";
@@ -62,6 +62,7 @@ public class Graph implements Serializable {
         else {
             databaseBuilder.setConfig(GraphDatabaseSettings.read_only, "false");
             databaseBuilder.setConfig(GraphDatabaseSettings.batched_writes, "true");
+            databaseBuilder.setConfig(GraphDatabaseSettings.dump_configuration, "true");
         }
         graphDatabaseService = databaseBuilder.newGraphDatabase();
 
@@ -276,7 +277,7 @@ public class Graph implements Serializable {
         Transaction tx = graphDatabaseService.beginTx();
         try {
             if(areSisters) {
-                distance = distance/10;
+                distance = distance/1000;
             }
             Relationship relationship = null;
             if(areSisters) {

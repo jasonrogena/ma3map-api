@@ -26,21 +26,12 @@ public class Commute {
     private final double SPEED_WALKING = 2.77778;//average walking speed in m/s
     private final double SPEED_MATATU = 5.55556;//average value in m/s that can be used to estimate how long it would take a matatu to cover some distance
 
-    @PrimaryKey
-    @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
     private Long id;
-    
-    @Persistent
     private LatLng from;//actual point on map use wants to go from
-    
-    @Persistent
     private LatLng to;//actual point on map user want to go to
-    
-    @Persistent
     private ArrayList<Step> steps;
-    
-    @Persistent
     private double time;
+    private int noStops;
     
     public Commute(LatLng from, LatLng to){
         this.from = from;
@@ -82,7 +73,9 @@ public class Commute {
         } 
         return null;
     }
-    
+    public void setNoStops(int noStops) {
+        this.noStops = noStops;
+    }
     public Long getId(){
     	return this.id;
     }
@@ -151,7 +144,6 @@ public class Commute {
          */
 
         double stepScore = SCORE_STEP * steps.size();
-        int noStops = 0;
         double totalDistanceWalked = 0;
 
         //get distances from actual from and to points
@@ -171,12 +163,8 @@ public class Commute {
             if(steps.get(index).getStepType() == Step.TYPE_WALKING){
                 totalDistanceWalked = totalDistanceWalked + steps.get(index).getStart().getDistance(steps.get(index).getDestination().getLatLng());
             }
-            else if(steps.get(index).getStepType() == Step.TYPE_MATATU){
-                noStops = noStops + steps.get(index).getRoute().getStops(0).size();
-            }
         }
-        //double stopScore = noStops * SCORE_STOP;
-        double stopScore = 0;
+        double stopScore = noStops * SCORE_STOP;
         //TODO: get the actual route stops in the commute routes and not just all the stops
         double walkingScore = SCORE_WALKING * totalDistanceWalked;
 

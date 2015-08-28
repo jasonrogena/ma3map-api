@@ -20,6 +20,11 @@ public class Path {
     }
 
     public ArrayList<Stop> getStops() {
+        for(int index = 0; index < stops.size(); index++) {
+            if(stops.get(index) == null) {
+                Log.e(TAG, "One of the path stops is null");
+            }
+        }
         return stops;
     }
 

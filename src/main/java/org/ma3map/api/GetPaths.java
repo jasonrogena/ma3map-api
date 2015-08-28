@@ -3,22 +3,18 @@ package org.ma3map.api;
 import java.util.ArrayList;
 import java.lang.System;
 import java.lang.Object;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
-import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import org.ma3map.api.carriers.Commute;
 import org.ma3map.api.carriers.LatLng;
 import org.ma3map.api.carriers.Route;
 import org.ma3map.api.carriers.Stop;
-import org.ma3map.api.handlers.BestPath;
+import org.ma3map.api.handlers.Path;
 import org.ma3map.api.handlers.Data;
 import org.ma3map.api.handlers.Graph;
 import org.ma3map.api.handlers.Log;
@@ -27,7 +23,6 @@ import org.ma3map.api.listeners.ProgressListener;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.neo4j.graphdb.Node;
 
 /**
  * @author Jason Rogena <jasonrogena@gmail.com>
@@ -43,7 +38,7 @@ import org.neo4j.graphdb.Node;
  *  <p>
  * GPS coordinates from the client should be of the form <code>latitude,longitude</code>
  */
-@Path("/get-paths")
+@javax.ws.rs.Path("/get-paths")
 public class GetPaths {
 
     private static final String TAG = "ma3map.GetPaths";
@@ -78,8 +73,8 @@ public class GetPaths {
     public String start(@QueryParam("from") String fromString, @QueryParam("to") String toString, @QueryParam("no_from_stops") String noFromStops, @QueryParam("no_to_stops") String noToStops) {
         Log.i(TAG, "API called");
         graph.printGraphStats();
-        int noFrom = BestPath.MAX_FROM_POINTS;
-        int noTo = BestPath.MAX_TO_POINTS;
+        int noFrom = Path.MAX_FROM_POINTS;
+        int noTo = Path.MAX_TO_POINTS;
         if(noFromStops != null && noFromStops.length() > 0) {
             noFrom = Integer.valueOf(noFromStops);
         }
@@ -118,10 +113,10 @@ public class GetPaths {
             //check if to and from LatLngs are initialised
             if(toPoint != null && fromPoint != null) {
                 //2. calculate best path
-                BestPath bestPathHandler = new BestPath(fromPoint, noFrom, toPoint, noTo, routes);
+                Path pathHandler = new Path(fromPoint, noFrom, toPoint, noTo, graph, routes, stops);
                 getPathsProgressListener = new GetPathsProgressListener(System.currentTimeMillis());
-                bestPathHandler.addProgressListener(getPathsProgressListener);
-                bestPathHandler.calculatePaths();
+                pathHandler.addProgressListener(getPathsProgressListener);
+                pathHandler.calculatePaths();
 
                 //3. wait for calculation to finish
                 int s = 0;
@@ -189,6 +184,9 @@ public class GetPaths {
                             Log.d(TAG, "  step "+stepIndex+" is walking from "+currCommute.getSteps().get(stepIndex).getStart().getName()+" to "+currCommute.getSteps().get(stepIndex).getDestination().getName());
                         }
                         else if(currCommute.getSteps().get(stepIndex).getStepType() == Commute.Step.TYPE_MATATU){
+                            if(currCommute.getSteps().get(stepIndex).getRoute() == null) {
+                                Log.e(TAG, "Route is null");
+                            }
                            Log.d(TAG, "  step "+stepIndex+" is using route '"+currCommute.getSteps().get(stepIndex).getRoute().getLongName()+"("+currCommute.getSteps().get(stepIndex).getRoute().getShortName()+")'");
                            if(currCommute.getSteps().get(stepIndex).getStart() != null)
                                Log.d(TAG, "    from "+currCommute.getSteps().get(stepIndex).getStart().getName()+" "+currCommute.getSteps().get(stepIndex).getStart().getLat()+","+currCommute.getSteps().get(stepIndex).getStart().getLon());
