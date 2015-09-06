@@ -22,7 +22,7 @@ public class Commute {
     private static final String TAG = "ma3map.Commute";
 
     private final double SCORE_STEP = 10;//score given for each step in commute
-    private final double SCORE_WALKING = 0.1;//score given for each meter walked
+    private final double SCORE_WALKING = 100;//score given for each meter walked
     private final double SCORE_STOP = 2;//score given for each stop in commute
     private final double SPEED_WALKING = 2.77778;//average walking speed in m/s
     private final double SPEED_MATATU = 5.55556;//average value in m/s that can be used to estimate how long it would take a matatu to cover some distance

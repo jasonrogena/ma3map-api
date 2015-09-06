@@ -83,7 +83,7 @@ public class Graph implements Serializable {
             stopMap.put(stops.get(index).getId(), stops.get(index));
         }
 
-        stopRoutes = new HashMap<String, ArrayList<String>>();
+        this.stopRoutes = new HashMap<String, ArrayList<String>>();
         for (int sIndex = 0; sIndex < stops.size(); sIndex++) {
             Log.i(TAG, "Reindexing stops and routes", (sIndex + 1), stops.size());
             Stop currStop = stops.get(sIndex);
