@@ -45,6 +45,10 @@ Start the webserver by running the following commands (the first command sets th
     export MAVEN_OPTS=-Xmx1024m
     mvn exec:java
 
+If you want the API to be accessible from other hosts, make sure port 8080 is open for incoming TCP connections. Add the following rule to your IPv4 iptables rules file:
+
+    -A INPUT -p tcp -m state --state NEW -m tcp --dport 8080 -j ACCEPT
+
 This API has already been deployed in a Digital Ocean instance (46.101.42.136). The paths endpoint, for instance, can be accessed by calling:
 
     http://46.101.42.136:8080/ma3map/get-paths?from=-1.264945,36.721226&to=-1.279868,36.818099
