@@ -13,11 +13,9 @@ import org.ma3map.api.handlers.Log;
 import org.neo4j.graphdb.Node;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.URI;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,16 +32,31 @@ public class Server {
      * Starts Grizzly HTTP server exposing JAX-RS resources defined in this application.
      * @return Grizzly HTTP server.
      */
-    public static HttpServer startServer() throws UnknownHostException {
-        InetAddress ip = InetAddress.getLocalHost();
+    public static HttpServer startServer() throws UnknownHostException, SocketException {
+        Enumeration<NetworkInterface> n = NetworkInterface.getNetworkInterfaces();
+        String ip = null;
+        for (; n.hasMoreElements();) {
+            NetworkInterface e = n.nextElement();
+            System.out.println("Interface: " + e.getName());
+            Enumeration<InetAddress> a = e.getInetAddresses();
+            for (; a.hasMoreElements();) {
+                InetAddress addr = a.nextElement();
+                if(!addr.isLoopbackAddress() && addr instanceof Inet4Address){
+                    ip = addr.getHostAddress();
+                    break;
+                }
+            }
+            if(ip != null) break;
+        }
+
         // create a resource config that scans for JAX-RS resources and providers
         // in org.ma3map.api package
         final ResourceConfig rc = new ResourceConfig().packages("org.ma3map.api");
         rc.register(new GraphBinder());
         // create and start a new instance of grizzly http server
         // exposing the Jersey application at BASE_URI
-        Log.d(TAG, "About to start API on "+"http://"+ip.getHostAddress()+BASE_URI);
-        return GrizzlyHttpServerFactory.createHttpServer(URI.create("http://"+ip.getHostAddress()+BASE_URI), rc);
+        Log.d(TAG, "About to start API on "+"http://"+ip+BASE_URI);
+        return GrizzlyHttpServerFactory.createHttpServer(URI.create("http://"+ip+BASE_URI), rc);
     }
 
     /**
