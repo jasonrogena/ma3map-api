@@ -13,7 +13,10 @@ import org.ma3map.api.handlers.Log;
 import org.neo4j.graphdb.Node;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,20 +28,22 @@ import java.util.Map;
 public class Server {
     // Base URI the Grizzly HTTP server will listen on
     private static final String TAG = "ma3map.Server";
-    public static final String BASE_URI = "http://localhost:8080/ma3map/";
+    public static final String BASE_URI = ":8080/ma3map/";
 
     /**
      * Starts Grizzly HTTP server exposing JAX-RS resources defined in this application.
      * @return Grizzly HTTP server.
      */
-    public static HttpServer startServer() {
+    public static HttpServer startServer() throws UnknownHostException {
+        InetAddress ip = InetAddress.getLocalHost();
         // create a resource config that scans for JAX-RS resources and providers
         // in org.ma3map.api package
         final ResourceConfig rc = new ResourceConfig().packages("org.ma3map.api");
         rc.register(new GraphBinder());
         // create and start a new instance of grizzly http server
         // exposing the Jersey application at BASE_URI
-        return GrizzlyHttpServerFactory.createHttpServer(URI.create(BASE_URI), rc);
+        Log.d(TAG, "About to start API on "+"http://"+ip.getHostAddress()+BASE_URI);
+        return GrizzlyHttpServerFactory.createHttpServer(URI.create("http://"+ip.getHostAddress()+BASE_URI), rc);
     }
 
     /**
@@ -48,8 +53,7 @@ public class Server {
      */
     public static void main(String[] args) throws IOException {
         final HttpServer server = startServer();
-        System.out.println(String.format("Jersey app started with WADL available at "
-                + "%sapplication.wadl\nHit enter to stop it...", BASE_URI));
+        System.out.println(String.format("Jersey app started with WADL\nHit enter to stop it..."));
         System.in.read();
         server.shutdown();
     }

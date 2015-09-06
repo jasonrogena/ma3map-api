@@ -45,6 +45,6 @@ Start the webserver by running the following commands (the first command sets th
     export MAVEN_OPTS=-Xmx1024m
     mvn exec:java
 
-This API has already been deployed in a Linode instance (212.111.43.103). The paths endpoint, for instance, can be accessed by calling:
+This API has already been deployed in a Digital Ocean instance (46.101.42.136). The paths endpoint, for instance, can be accessed by calling:
 
-    http://212.111.43.103:8080/get_paths?from=-1.264945,36.721226&to=-1.279868,36.818099
+    http://46.101.42.136:8080/ma3map/get-paths?from=-1.264945,36.721226&to=-1.279868,36.818099
