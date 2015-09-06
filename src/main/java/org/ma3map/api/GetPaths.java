@@ -184,20 +184,22 @@ public class GetPaths {
                             Log.d(TAG, "  step "+stepIndex+" is walking from "+currCommute.getSteps().get(stepIndex).getStart().getName()+" to "+currCommute.getSteps().get(stepIndex).getDestination().getName());
                         }
                         else if(currCommute.getSteps().get(stepIndex).getStepType() == Commute.Step.TYPE_MATATU){
+                            Log.d(TAG, "Step "+String.valueOf(stepIndex));
                             if(currCommute.getSteps().get(stepIndex).getRoute() == null) {
                                 Log.e(TAG, "Route is null");
                             }
-                           Log.d(TAG, "  step "+stepIndex+" is using route '"+currCommute.getSteps().get(stepIndex).getRoute().getLongName()+"("+currCommute.getSteps().get(stepIndex).getRoute().getShortName()+")'");
-                           if(currCommute.getSteps().get(stepIndex).getStart() != null)
-                               Log.d(TAG, "    from "+currCommute.getSteps().get(stepIndex).getStart().getName()+" "+currCommute.getSteps().get(stepIndex).getStart().getLat()+","+currCommute.getSteps().get(stepIndex).getStart().getLon());
-                           if(currCommute.getSteps().get(stepIndex).getDestination() != null)
-                               Log.d(TAG, "    to "+currCommute.getSteps().get(stepIndex).getDestination().getName()+" "+currCommute.getSteps().get(stepIndex).getDestination().getLat()+","+currCommute.getSteps().get(stepIndex).getDestination().getLon());
+                            else {
+                                Log.d(TAG, "  step "+stepIndex+" is using route '"+currCommute.getSteps().get(stepIndex).getRoute().getLongName()+"("+currCommute.getSteps().get(stepIndex).getRoute().getShortName()+")'");
+                                if(currCommute.getSteps().get(stepIndex).getStart() != null)
+                                    Log.d(TAG, "    from "+currCommute.getSteps().get(stepIndex).getStart().getName()+" "+currCommute.getSteps().get(stepIndex).getStart().getLat()+","+currCommute.getSteps().get(stepIndex).getStart().getLon());
+                                if(currCommute.getSteps().get(stepIndex).getDestination() != null)
+                                    Log.d(TAG, "    to "+currCommute.getSteps().get(stepIndex).getDestination().getName()+" "+currCommute.getSteps().get(stepIndex).getDestination().getLat()+","+currCommute.getSteps().get(stepIndex).getDestination().getLon());
+                            }
                         }
                     }
 
                     Log.d(TAG, "------------------------------------------------------");
                 }
-
                 Log.d(TAG, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
                 commutePath = commutes;
                 isWorking = false;

@@ -58,27 +58,19 @@ public class Server {
         Data dataHandler = new Data();
         ArrayList<Stop> stops = dataHandler.getStopData();
         ArrayList<Route> routes = dataHandler.getRouteData();
+        final HashMap<String, ArrayList<String>> stopRoutes = getStopRoutes(routes, stops);
+        Log.i(TAG, "Number of indexed stops = " + String.valueOf(stopRoutes.size()));
         Graph graph = new Graph(routes, stops, false);
         if(!dataHandler.fileExists(Data.BLOCK_GRAPH_CREATION)) {
             dataHandler.createFile(Data.BLOCK_GRAPH_CREATION);
             graph.deleteGraph();
 
             //for each of the stops, get a list of all the routes that contain it
-            Map<String, ArrayList<String>> stopRoutes = new HashMap<String, ArrayList<String>>();
-            for (int sIndex = 0; sIndex < stops.size(); sIndex++) {
-                Log.i(TAG, "Indexing stops and routes", (sIndex + 1), stops.size());
-                Stop currStop = stops.get(sIndex);
-                ArrayList<String> routesWithCurrStop = new ArrayList<String>();
-                for (int rIndex = 0; rIndex < routes.size(); rIndex++) {
-                    if (routes.get(rIndex).isStopInRoute(currStop)) {
-                        routesWithCurrStop.add(routes.get(rIndex).getId());
-                    }
-                }
-                stopRoutes.put(currStop.getId(), routesWithCurrStop);
-            }
-            Log.i(TAG, "Number of indexed stops = " + String.valueOf(stopRoutes.size()));
             ArrayList<StopPair> stopPairs = new ArrayList<StopPair>();
             //now compare pairs of all the stops and add them to the graph
+            int totalRels = 0;
+            int sisterRels = 0;
+            int sisterRels2 = 0;
             for (int sIndex = 0; sIndex < stops.size(); sIndex++) {
                 Log.i(TAG, "Adding stops to graph", (sIndex + 1), stops.size());
                 Stop currStop = stops.get(sIndex);
@@ -94,23 +86,43 @@ public class Server {
                                 boolean areSisters = false;
                                 if (commonRouteIds.size() > 0) {
                                     areSisters = true;
+                                    sisterRels++;
                                 }
                                 Node nodeA = graph.createNode(currPair.getA().getId());
                                 Node nodeB = graph.createNode(currPair.getB().getId());
-                                graph.createRelationship(nodeA, nodeB, currPair.getA().getDistance(currPair.getB().getLatLng()), areSisters);
+                                boolean result = graph.createRelationship(nodeA, nodeB, currPair.getA().getDistance(currPair.getB().getLatLng()), areSisters);
+                                if(result == true) {
+                                    totalRels++;
+                                    if(areSisters){
+                                        sisterRels2++;
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
             graph.printGraphStats();
-            Node node1 = graph.getNode("0311BAO");
-            Node node2 = graph.getNode("0210KNJ");
-            ArrayList<org.ma3map.api.carriers.Path> paths = graph.getPaths(node1, node2);
             dataHandler.deleteFile(Data.BLOCK_GRAPH_CREATION);
             Log.i(TAG, "Done creating the graph");
         }
         return graph;
+    }
+
+    private static HashMap<String, ArrayList<String>> getStopRoutes(ArrayList<Route> routes, ArrayList<Stop> stops) {
+        HashMap<String, ArrayList<String>> stopRoutes = new HashMap<String, ArrayList<String>>();
+        for (int sIndex = 0; sIndex < stops.size(); sIndex++) {
+            Log.i(TAG, "Indexing stops and routes", (sIndex + 1), stops.size());
+            Stop currStop = stops.get(sIndex);
+            ArrayList<String> routesWithCurrStop = new ArrayList<String>();
+            for (int rIndex = 0; rIndex < routes.size(); rIndex++) {
+                if (routes.get(rIndex).isStopInRoute(currStop)) {
+                    routesWithCurrStop.add(routes.get(rIndex).getId());
+                }
+            }
+            stopRoutes.put(currStop.getId(), routesWithCurrStop);
+        }
+        return stopRoutes;
     }
 
     public static class GraphBinder extends AbstractBinder {

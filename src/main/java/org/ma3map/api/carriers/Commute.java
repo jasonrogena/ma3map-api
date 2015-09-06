@@ -18,6 +18,7 @@ import javax.jdo.annotations.PrimaryKey;
 public class Commute {
 	public static final String PARCELABLE_KEY = "Commute";
     private static final int PARCELABLE_DESC = 2112;
+    public static final double MAX_WALKING_DISTANCE = 2000;
     private static final String TAG = "ma3map.Commute";
 
     private final double SCORE_STEP = 10;//score given for each step in commute
@@ -105,6 +106,20 @@ public class Commute {
         for(int index = 0; index < steps.size(); index++){
             this.steps.add(new Step(steps.get(index).getStepType(), steps.get(index).getRoute(), steps.get(index).getStart(), steps.get(index).getDestination()));
         }
+    }
+
+    public Step getLastStep() {
+        if(this.steps.size() > 0) {
+            return this.steps.get(this.steps.size() - 1);
+        }
+        return null;
+    }
+
+    public int getLastStepIndex() {
+        if(this.steps.size() > 0) {
+            return this.getSteps().size() - 1;
+        }
+        return -1;
     }
 
     public double getTime(){

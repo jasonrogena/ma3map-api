@@ -42,6 +42,7 @@ public class Graph implements Serializable {
     private HashMap<String, Node> nodes;
     private HashMap<String, Stop> stopMap;
     private ArrayList<Route> routes;
+    private final HashMap<String, ArrayList<String>> stopRoutes;
 
     private enum RelTypes implements RelationshipType {
         ARE_SISTERS,
@@ -81,6 +82,20 @@ public class Graph implements Serializable {
         for(int index = 0; index < stops.size(); index++) {
             stopMap.put(stops.get(index).getId(), stops.get(index));
         }
+
+        stopRoutes = new HashMap<String, ArrayList<String>>();
+        for (int sIndex = 0; sIndex < stops.size(); sIndex++) {
+            Log.i(TAG, "Reindexing stops and routes", (sIndex + 1), stops.size());
+            Stop currStop = stops.get(sIndex);
+            ArrayList<String> routesWithCurrStop = new ArrayList<String>();
+            for (int rIndex = 0; rIndex < routes.size(); rIndex++) {
+                if (routes.get(rIndex).isStopInRoute(currStop)) {
+                    routesWithCurrStop.add(routes.get(rIndex).getId());
+                }
+            }
+            stopRoutes.put(currStop.getId(), routesWithCurrStop);
+        }
+        Log.i(TAG, "Number of reindexed stops = " + String.valueOf(stopRoutes.size()));
         // Registers a shutdown hook for the Neo4j instance so that it
         // shuts down nicely when the VM exits (even if you "Ctrl-C" the
         // running application).
@@ -92,6 +107,10 @@ public class Graph implements Serializable {
                 graphDatabaseService.shutdown();
             }
         } );
+    }
+
+    public HashMap<String, ArrayList<String>> getStopRoutes() {
+        return this.stopRoutes;
     }
 
     private void loadNodes() {
@@ -224,25 +243,18 @@ public class Graph implements Serializable {
                 the cost of the unsolved path given the path we already have*/
                 Ma3mapCostEvaluator costEvaluator = new Ma3mapCostEvaluator();
                 PathFinder<WeightedPath> finder = GraphAlgoFactory.dijkstra(PathExpanders.allTypesAndDirections(), costEvaluator);
-                Iterable<WeightedPath> paths = finder.findAllPaths(node1, node2);
-                if(paths != null){
-                    Iterator<WeightedPath> pathIterator = paths.iterator();
-                    while(pathIterator.hasNext()){
-                        WeightedPath weightedPath = pathIterator.next();
-                        double weight = weightedPath.weight();
-                        ArrayList<Stop> stops = new ArrayList<Stop>();
-                        Iterable<Node> nodes = weightedPath.nodes();
-                        Iterator<Node> nodeIterator = nodes.iterator();
-                        while(nodeIterator.hasNext()) {
-                            Node currNode = nodeIterator.next();
-                            stops.add(stopMap.get(currNode.getProperty(NODE_PROPERTY_ID)));
-                        }
-                        org.ma3map.api.carriers.Path currPath = new Path(stops, weight);
-                        stopPaths.add(currPath);
-                    }
-                    Log.d(TAG, "Gotten "+String.valueOf(stopPaths.size())+" paths");
-                    Collections.sort(stopPaths, new Path.WeightComparator());
+                WeightedPath weightedPath = finder.findSinglePath(node1, node2);
+                double weight = weightedPath.weight();
+                ArrayList<Stop> stops = new ArrayList<Stop>();
+                Iterable<Node> nodes = weightedPath.nodes();
+                Iterator<Node> nodeIterator = nodes.iterator();
+                while(nodeIterator.hasNext()) {
+                    Node currNode = nodeIterator.next();
+                    stops.add(stopMap.get(currNode.getProperty(NODE_PROPERTY_ID)));
                 }
+                org.ma3map.api.carriers.Path currPath = new Path(stops, weight);
+                stopPaths.add(currPath);
+                //Collections.sort(stopPaths, new Path.WeightComparator());
                 tx.success();
             }
             catch (Exception e) {
@@ -276,18 +288,26 @@ public class Graph implements Serializable {
         boolean result = false;
         Transaction tx = graphDatabaseService.beginTx();
         try {
+            boolean createRel = true;
             if(areSisters) {
-                distance = distance/1000;
-            }
-            Relationship relationship = null;
-            if(areSisters) {
-                relationship = node1.createRelationshipTo(node2, RelTypes.ARE_SISTERS);
+                distance = distance/100000;
             }
             else {
-                relationship = node1.createRelationshipTo(node2, RelTypes.ARE_NEIGHBOURS);
+                if(distance > Commute.MAX_WALKING_DISTANCE) {
+                    createRel = false;
+                }
             }
-            relationship.setProperty(PROPERTY_DISTANCE, new Double(distance));
-            result = true;
+            if(createRel == true) {
+                Relationship relationship = null;
+                if(areSisters) {
+                    relationship = node1.createRelationshipTo(node2, RelTypes.ARE_SISTERS);
+                }
+                else {
+                    relationship = node1.createRelationshipTo(node2, RelTypes.ARE_NEIGHBOURS);
+                }
+                relationship.setProperty(PROPERTY_DISTANCE, new Double(distance));
+                result = true;
+            }
             tx.success();
         }
         catch(Exception e){
@@ -313,6 +333,8 @@ public class Graph implements Serializable {
             //TODO: use exponental decay function to adjust the effect of the speed on the cost based on when the speed was recorded
             //be sure not to use the == comparitor with Double objects ;)
             Double distance = (Double)relationship.getProperty(PROPERTY_DISTANCE);
+            /*Log.d(TAG, distance.toString());
+            Log.d(TAG, relationship.getType().toString());*/
             return distance;
         }
     }
