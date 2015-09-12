@@ -49,6 +49,10 @@ If you want the API to be accessible from other hosts, make sure port 8080 is op
 
     -A INPUT -p tcp -m state --state NEW -m tcp --dport 8080 -j ACCEPT
 
-This API has already been deployed in a Digital Ocean instance (46.101.42.136). The paths endpoint, for instance, can be accessed by calling:
+This API has already been deployed in a Digital Ocean instance. The paths endpoint, for instance, can be accessed by calling:
 
-    http://46.101.42.136:8080/get-paths?from=-1.264945,36.721226&to=-1.279868,36.818099
+    http://api.ma3map.org/get/paths?from=-1.264945,36.721226&to=-1.279868,36.818099
+
+## LICENSE
+
+This code is released under the [GNU Affero General Public License version 3](http://www.gnu.org/licenses/agpl-3.0.html). Please see the file LICENSE.txt for details.
