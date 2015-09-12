@@ -1,0 +1,25 @@
+{
+  "name": "ma3map",
+  "version": "0.1.0",
+  "description": "An API holding Nairobi's matatu route data",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "restify": "latest",
+    "pg": "latest",
+    "fs": "latest",
+    "http": "latest"
+  },
+  "engines": {
+    "node": "0.10.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ma3map/ma3map-server"
+  },
+  "keywords": ["matatu", "ma3", "mathree", "map", "ma3map", "digital matatus"],
+  "author": "Jason Rogena <jasonrogena@gmail.com> (https://jasonrogena.github.io)",
+  "license": "AGPLv3"
+}
