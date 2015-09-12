@@ -19,6 +19,7 @@ function Server() {
    //initialize the api endpoints
    server.initGetStopsEndpoint();
    server.initGetRoutesEndpoint();
+   server.initGetPathsEndpoint();
    var port = 3000;
    if(typeof process.env.PORT != 'undefined'){
       port = process.env.PORT;
@@ -102,7 +103,6 @@ Server.prototype.initGetRoutesEndpoint = function() {
 };
 
 /**
-/**
 * This module initializes the API endpoint responsible for:
 *     - getting the list of stops
 */
@@ -119,7 +119,7 @@ Server.prototype.initGetStopsEndpoint = function() {
    });
 };
 
-* This module initializes the API endpoint responsible for:
+/** This module initializes the API endpoint responsible for:
 *     - getting the paths between points
 */
 Server.prototype.initGetPathsEndpoint = function() {
