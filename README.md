@@ -4,10 +4,10 @@ ma3map is a [matatu](http://en.wikipedia.org/wiki/Matatu) transit application fo
 
 ## API
 
-The API has been created using NodeJS and Java with the NodeJS code acting as the gateway for all accesses. This repository also contains configuration files used in the deployment server as well as database dumps for the PostgreSQL database used.
+The API has been created using NodeJS and Java with the NodeJS code acting as the gateway for all accesses. This repository also contains configuration files used in the deployment server as well as database dumps for the PostgreSQL database used. The API can be accessed from http://api.ma3map.org
 
 Refer to the README files in the nodejs and java directories for details on deployment of their corresponding languages.
 
 ## LICENSE
 
-This code is released under the [GNU Affero General Public License version 3](http://www.gnu.org/licenses/agpl-3.0.html). Please see the file LICENSE.md for details.
+This code is released under the [GNU Affero General Public License version 3](http://www.gnu.org/licenses/agpl-3.0.html). Please read the file LICENSE.md for details.

@@ -55,4 +55,4 @@ This API has already been deployed in a Digital Ocean instance. The paths endpoi
 
 ## LICENSE
 
-This code is released under the [GNU Affero General Public License version 3](http://www.gnu.org/licenses/agpl-3.0.html). Please see the file LICENSE.txt for details.
+This code is released under the [GNU Affero General Public License version 3](http://www.gnu.org/licenses/agpl-3.0.html). Please read the file LICENSE.txt for details.
