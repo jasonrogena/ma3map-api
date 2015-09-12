@@ -130,7 +130,7 @@ Server.prototype.initGetPathsEndpoint = function() {
       var options = {
          host: 'api.ma3map.org',
          port: '8080',
-         path: '/get-paths?from='+req.params.from+'&to='+req.params.to
+         path: '/get-paths?'+req._url.query
       };
       var callback = function(response){
          var str = '';
@@ -138,7 +138,7 @@ Server.prototype.initGetPathsEndpoint = function() {
             str += chunk;
          });
          response.on('end', function(){
-            res.send(str);
+            res.send(JSON.parse(str));
          });
       }
       http.request(options, callback).end();
