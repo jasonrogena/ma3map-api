@@ -42,13 +42,13 @@ Server.prototype.initGetRoutesEndpoint = function() {
       //check if data already cached in file
       var fs = require("fs");
       var path = require("path");
-      var tmpDir = path.join(process.cwd(), 'tmp/');
+      var tmpDir = path.join(process.cwd(), 'cache/');
       
       if(!fs.existsSync(tmpDir)) {
          console.log("creating tmp directory");
          fs.mkdirSync(tmpDir);
       }
-      var routeDataFile = path.join(process.cwd(), 'tmp/route_data.json');
+      var routeDataFile = path.join(process.cwd(), 'cache/route_data.json');
       if(fs.existsSync(routeDataFile)){
          console.log("getting cached route data");
          
