@@ -24,7 +24,7 @@ Line.prototype.getPoints = function() {
       "routeComplete": routeComplete,
       "routeData": routeData}; 
    
-   db.runQuery("select shape_point[0] as point_lat, shape_point[1] as point_lon, shape_sequence as point_sequence, shape_dist_traveled as dist_traveled from shapes WHERE shape_id = '"+data.line_id+"' order by shape_sequence", context, function(context, dbData){
+   db.runQuery("select shape_pt_lat as point_lat, shape_pt_lon as point_lon, shape_pt_sequence as  point_sequence, shape_dist_traveled as dist_traveled from gtfs_shapes WHERE shape_id = '"+data.line_id+"' order by shape_sequence", context, function(context, dbData){
       var data = context.data;
       var stops = context.stops;
       var complete = context.complete;
