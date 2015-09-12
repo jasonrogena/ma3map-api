@@ -1,0 +1,8 @@
+server {
+    listen 80;
+    server_name api.ma3map.org;
+    access_log /var/log/nginx/api.ma3map.org.access.log;
+    location / {
+        proxy_pass    http://127.0.0.1:3000/;
+    }
+}
