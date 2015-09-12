@@ -1,3 +1,0 @@
-service_id,date,exception_type
-DAILY,20140526,2
-SPCDY,20140310,2
