@@ -11,6 +11,7 @@ Setting up nodejs:
     cd ma3map-api_nodejs
     npm install fs
     npm install restify
+    npm install http
 
     apt-get install postgresql-server-dev-9.1
     npm install pg

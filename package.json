@@ -9,7 +9,8 @@
   "dependencies": {
     "restify": "latest",
     "pg": "latest",
-    "fs": "latest"
+    "fs": "latest",
+    "http": "latest"
   },
   "engines": {
     "node": "0.10.x"
@@ -20,8 +21,5 @@
   },
   "keywords": ["matatu", "ma3", "mathree", "map", "ma3map", "digital matatus"],
   "author": "Jason Rogena <jasonrogena@gmail.com> (https://jasonrogena.github.io)",
-  "contributors": [
-    "Raymond Wanyoike <raymond.wanyoike@gmail.com.com> (https://github.com/raymondwanyoike)"
-  ],
-  "license": "GPLv2"
+  "license": "AGPLv3"
 }

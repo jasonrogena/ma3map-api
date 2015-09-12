@@ -102,6 +102,7 @@ Server.prototype.initGetRoutesEndpoint = function() {
 };
 
 /**
+/**
 * This module initializes the API endpoint responsible for:
 *     - getting the list of stops
 */
@@ -115,6 +116,32 @@ Server.prototype.initGetStopsEndpoint = function() {
       db.runQuery("select stop_id, stop_name, stop_code, stop_desc, stop_lat, stop_lon, location_type, parent_station from \"gtfs_stops\"", {"complete": complete}, function(context, data){
          res.send(data);
       });
+   });
+};
+
+* This module initializes the API endpoint responsible for:
+*     - getting the paths between points
+*/
+Server.prototype.initGetPathsEndpoint = function() {
+   console.log("Initializing getPaths endpoint");
+   //if user does not specify any route, get all routes
+   server.restify.get('/get/paths', function(req, res, next){
+      var http = require('http');
+      var options = {
+         host: 'api.ma3map.org',
+         port: '8080',
+         path: '/get-paths?from='+req.params.from+'&to='+req.params.to
+      };
+      var callback = function(response){
+         var str = '';
+         response.on('data', function(chunk){
+            str += chunk;
+         });
+         response.on('end', function(){
+            res.send(str);
+         });
+      }
+      http.request(options, callback).end();
    });
 };
 
