@@ -26,7 +26,7 @@ import java.util.Map;
 public class Server {
     // Base URI the Grizzly HTTP server will listen on
     private static final String TAG = "ma3map.Server";
-    public static final String BASE_URI = ":8080/ma3map/";
+    public static final String BASE_URI = ":8080/";
 
     /**
      * Starts Grizzly HTTP server exposing JAX-RS resources defined in this application.
