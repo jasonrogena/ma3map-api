@@ -44,7 +44,7 @@ Route.prototype.setLines = function(){
    var db = new Database();
    var context = {"data": data, "stops": stops, "complete": complete};
 
-   db.runQuery("select direction_id, shape_id as line_id from gtfs_trips where route_id = '"+data.route_id+"'", context, function(context, dbData){
+   db.runQuery("select direction_id, shape_id as line_id from \"gtfs_trips\" where route_id = '"+data.route_id+"'", context, function(context, dbData){
       var data = context.data;
       var stops = context.stops;
       var complete = context.complete;
@@ -91,7 +91,7 @@ Route.prototype.setData = function(){
    
    var Database = require('./database');
    var db = new Database();
-   db.runQuery("select * from gtfs_stops", context, function(context, dbData){
+   db.runQuery("select * from \"gtfs_stops\"", context, function(context, dbData){
       var data = context.data;
       var complete = context.complete;
       console.log(route);

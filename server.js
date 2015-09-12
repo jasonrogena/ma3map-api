@@ -70,12 +70,12 @@ Server.prototype.initGetRoutesEndpoint = function() {
             "data": new Array(),
             "tmpFile": routeDataFile
          };         
-         db.runQuery("select stop_id, stop_name, stop_code, stop_desc, stop_point[0] as stop_lat, stop_point[1] as stop_lon, location_type, parent_station from stops", {"complete": complete}, function(context, data){
+         db.runQuery("select stop_id, stop_name, stop_code, stop_desc, stop_lat, stop_lon, location_type, parent_station from \"gtfs_stops\"", {"complete": complete}, function(context, data){
             var Database = require('./database');
             var db = new Database();
 
             var context = {"stops": data, "complete": context.complete};
-            db.runQuery("select * from gtfs_routes", context, function(context, data){
+            db.runQuery("select * from \"gtfs_routes\"", context, function(context, data){
                var routes = new Array();
                var stops = context.stops;
                var complete = context.complete;
@@ -112,7 +112,7 @@ Server.prototype.initGetStopsEndpoint = function() {
       var Database = require('./database');
       var db = new Database();
       var complete = {};
-      db.runQuery("select stop_id, stop_name, stop_code, stop_desc, stop_lat, stop_lon, location_type, parent_station from gtfs_stops", {"complete": complete}, function(context, data){
+      db.runQuery("select stop_id, stop_name, stop_code, stop_desc, stop_lat, stop_lon, location_type, parent_station from \"gtfs_stops\"", {"complete": complete}, function(context, data){
          res.send(data);
       });
    });
