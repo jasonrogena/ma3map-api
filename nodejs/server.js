@@ -128,7 +128,7 @@ Server.prototype.initGetPathsEndpoint = function() {
    server.restify.get('/get/paths', function(req, res, next){
       var http = require('http');
       var options = {
-         host: 'api.ma3map.org',
+         host: '46.101.42.136',
          port: '8080',
          path: '/get-paths?'+req._url.query
       };
