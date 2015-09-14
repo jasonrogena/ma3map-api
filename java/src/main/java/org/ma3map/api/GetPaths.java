@@ -133,14 +133,14 @@ public class GetPaths {
                 //convert commutePath to JSONArray
                 JSONObject jsonObject = new JSONObject();
                 try {
-                    jsonObject.put("time_taken", String.valueOf(timeTaken)+"ms");
+                    //jsonObject.put("time_taken", String.valueOf(timeTaken)+"ms");
                     JSONArray pathArray = new JSONArray();
                     for(int i = 0; i < commutePath.size(); i++){
                         pathArray.put(commutePath.get(i).getJSONObject());
                     }
-                    jsonObject.put("paths", pathArray);
+                    //jsonObject.put("paths", pathArray);
                     //graph.close();
-                    return jsonObject.toString();
+                    return pathArray.toString();
                 }
                 catch (JSONException e) {
                     Log.e(TAG, "An error occurred while trying to create a JSONObject for the commute paths");
