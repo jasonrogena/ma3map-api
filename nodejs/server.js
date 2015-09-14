@@ -14,7 +14,8 @@ function Server() {
    });
    server.restify
       .use(restify.fullResponse())
-      .use(restify.bodyParser());
+      .use(restify.bodyParser())
+      .use(restify.queryParser());
 
    //initialize the api endpoints
    server.initGetStopsEndpoint();
@@ -127,10 +128,12 @@ Server.prototype.initGetPathsEndpoint = function() {
    //if user does not specify any route, get all routes
    server.restify.get('/get/paths', function(req, res, next){
       var http = require('http');
+console.log(req);
       var options = {
          host: '46.101.42.136',
+         //host: 'api.ma3map.org',
          port: '8080',
-         path: '/get-paths?'+req._url.query
+         path: '/get-paths?from='+req.params.from+'&to='+req.params.to
       };
       var callback = function(response){
          var str = '';
