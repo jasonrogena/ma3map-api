@@ -5,10 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.ma3map.api.carriers.Commute;
-import org.ma3map.api.carriers.LatLng;
-import org.ma3map.api.carriers.Route;
-import org.ma3map.api.carriers.Stop;
+import org.ma3map.api.carriers.*;
 import org.ma3map.api.listeners.ProgressListener;
 
 
@@ -216,10 +213,15 @@ public class Path extends ProgressHandler {
                     }
                     else {
                         if(commute.getLastStep() != null && commute.getLastStep().getStepType() == Commute.Step.TYPE_WALKING) {
-                            commute.setStep(commute.getLastStepIndex(), new Commute.Step(Commute.Step.TYPE_WALKING,
-                                    commute.getLastStep().getRoute(),
-                                    commute.getLastStep().getStart(),
-                                    currStop));
+                            if(new LatLngPair(commute.getLastStep().getStart().getLatLng(), currStop.getLatLng()).getDistance() <= Commute.MAX_WALKING_DISTANCE){
+                                commute.setStep(commute.getLastStepIndex(), new Commute.Step(Commute.Step.TYPE_WALKING,
+                                        commute.getLastStep().getRoute(),
+                                        commute.getLastStep().getStart(),
+                                        currStop));
+                            }
+                            else {
+                                return null;
+                            }
                         }
                         else {
                             commute.addStep(new Commute.Step(Commute.Step.TYPE_WALKING, null, previousStop, currStop));

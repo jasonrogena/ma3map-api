@@ -3,12 +3,18 @@ package org.ma3map.api.carriers;
 public class LatLngPair {
     private final LatLng pointA;
     private final LatLng pointB;
-    private final double distance;
+    private double distance;
 
     public LatLngPair(LatLng pointA, LatLng pointB, double distance){
         this.pointA = pointA;
         this.pointB = pointB;
         this.distance = distance;
+    }
+
+    public LatLngPair(LatLng pointA, LatLng pointB) {
+        this.pointA = pointA;
+        this.pointB = pointB;
+        this.distance = -1;
     }
 
     public LatLng getPointA(){
@@ -20,7 +26,25 @@ public class LatLngPair {
     }
 
     public double getDistance(){
-        return distance;
+        if(this.distance == -1) {
+            final int earthRadius = 6371;
+
+            double latDiff = Math.toRadians(pointA.latitude - pointB.latitude);
+            double lonDiff = Math.toRadians(pointA.longitude - pointB.longitude);
+
+            double a = (Math.sin(latDiff/2) * Math.sin(latDiff/2))
+                    + Math.sin(lonDiff/2)
+                    * Math.sin(lonDiff/2)
+                    * Math.cos(Math.toRadians(pointA.latitude))
+                    * Math.cos(Math.toRadians(pointB.latitude));
+
+            double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+            double d = earthRadius * c;
+
+            this.distance = d * 1609;//convert to metres
+        }
+        return this.distance;
     }
 
     public boolean equals(LatLngPair latLngPair){
