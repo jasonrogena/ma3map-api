@@ -284,13 +284,15 @@ public class Graph implements Serializable {
     	return null;
     }
 
-    public boolean createRelationship(Node node1, Node node2, double distance, boolean areSisters) {
+    public boolean createRelationship(Node node1, Node node2, double distance, int noSharedRoutes) {
         boolean result = false;
         Transaction tx = graphDatabaseService.beginTx();
         try {
             boolean createRel = true;
+            boolean areSisters = false;
+            if(noSharedRoutes > 0) areSisters = true;
             if(areSisters) {
-                distance = distance/100000;
+                distance = distance/(1000*noSharedRoutes);
             }
             else {
                 if(distance > Commute.MAX_WALKING_DISTANCE) {

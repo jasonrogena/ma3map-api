@@ -100,20 +100,9 @@ public class Server {
                                 //check if the two stops have at least one common route
                                 ArrayList<String> commonRouteIds = stopRoutes.get(currPair.getA().getId());
                                 commonRouteIds.retainAll(stopRoutes.get(currPair.getB().getId()));
-                                boolean areSisters = false;
-                                if (commonRouteIds.size() > 0) {
-                                    areSisters = true;
-                                    sisterRels++;
-                                }
                                 Node nodeA = graph.createNode(currPair.getA().getId());
                                 Node nodeB = graph.createNode(currPair.getB().getId());
-                                boolean result = graph.createRelationship(nodeA, nodeB, currPair.getA().getDistance(currPair.getB().getLatLng()), areSisters);
-                                if(result == true) {
-                                    totalRels++;
-                                    if(areSisters){
-                                        sisterRels2++;
-                                    }
-                                }
+                                boolean result = graph.createRelationship(nodeA, nodeB, currPair.getA().getDistance(currPair.getB().getLatLng()), commonRouteIds.size());
                             }
                         }
                     }
