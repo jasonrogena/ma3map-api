@@ -164,7 +164,7 @@ public class Path extends ProgressHandler {
      *  -   All possible <code>routes</code> have been considered
      *  -   Number of <code>routes</code> in provided <code>commute</code> have surpassed {@link #MAX_NODES}
      * <p>
-     * @param commute       Commute object carrying the current route path being constructed
+     * @param firstStop The stop to be considered as the first stop in the commute to be constructed
      *
      * @return  A <code>Commute</code> object containing a complete path from a potential from <code>Stop</code>
      *          to a potential to <code>Stop</code> or <code>null</code> if no path is found
@@ -173,68 +173,66 @@ public class Path extends ProgressHandler {
      * @see org.ma3map.api.carriers.Route
      * @see org.ma3map.api.carriers.Stop
      */
-    private Commute getBestCommute(Stop firstStop){
-        Commute commute = new Commute(actualFrom, actualTo);
+    private ArrayList<Commute> getBestCommute(Stop firstStop){
+        ArrayList<Commute> commutes = new ArrayList<Commute>();
         org.ma3map.api.carriers.Path bestPath = null;
         for(int toIndex = 0; toIndex < to.size(); toIndex++){//still assumes that to stops are ordered in terms of closeness to actual destination
             Stop currTo = to.get(toIndex);
             ArrayList<org.ma3map.api.carriers.Path> currPaths = graph.getPaths(graph.getNode(firstStop.getId()), graph.getNode(currTo.getId()));
             org.ma3map.api.carriers.Path currBestPath = null;
             for (int pathIndex = 0; pathIndex < currPaths.size(); pathIndex++){
-                if(currBestPath == null || currBestPath.getStops().size() > currPaths.get(pathIndex).getStops().size()) {
-                    currBestPath = currPaths.get(pathIndex);
-                }
-            }
-            if(currBestPath != null) {
-                if(bestPath == null || bestPath.getStops().size() > currBestPath.getStops().size()) {
-                    bestPath = currBestPath;
-                }
+                Commute currCommute = constructCommute(currPaths.get(pathIndex), firstStop);
+                if(currCommute != null) commutes.add(currCommute);
             }
         }
-        if(bestPath != null) {
-            ArrayList<Stop> stops = bestPath.getStops();
-            commute.setNoStops(stops.size());
-            if(stops.get(0).getId().equals(firstStop.getId())) {
-                for(int stopIndex = 1; stopIndex < stops.size(); stopIndex++) {
-                    Stop currStop = stops.get(stopIndex);
-                    Stop previousStop = stops.get(stopIndex - 1);
-                    ArrayList<Route> commonRoutes = getCommonRoutes(previousStop, currStop);
-                    if(commonRoutes.size() > 0) {
-                        if(commonRoutes.get(0) == null) Log.w(TAG, "First common route is null. Bound to crash");
-                        if(commute.getLastStep() != null && commute.getLastStep().getStepType() == Commute.Step.TYPE_MATATU) {
-                            commute.setStep(commute.getLastStepIndex(), new Commute.Step(Commute.Step.TYPE_MATATU,
-                                    commonRoutes.get(0),
+
+        return commutes;
+    }
+
+    private Commute constructCommute(org.ma3map.api.carriers.Path path, Stop firstStop) {
+        Commute commute = new Commute(actualFrom, actualTo);
+        ArrayList<Stop> stops = path.getStops();
+        commute.setNoStops(stops.size());
+        if(stops.get(0).getId().equals(firstStop.getId())) {
+            for(int stopIndex = 1; stopIndex < stops.size(); stopIndex++) {
+                Stop currStop = stops.get(stopIndex);
+                Stop previousStop = stops.get(stopIndex - 1);
+                ArrayList<Route> commonRoutes = getCommonRoutes(previousStop, currStop);
+                if(commonRoutes.size() > 0) {
+                    if(commute.getLastStep() != null && commute.getLastStep().getStepType() == Commute.Step.TYPE_MATATU) {
+                        commute.setStep(commute.getLastStepIndex(), new Commute.Step(Commute.Step.TYPE_MATATU,
+                                commonRoutes.get(0),
+                                commute.getLastStep().getStart(),
+                                currStop));
+                    }
+                    else {
+                        commute.addStep(new Commute.Step(Commute.Step.TYPE_MATATU, commonRoutes.get(0), previousStop, currStop));
+                    }
+                }
+                else {
+                    //we don't expect the first step to be a walking step
+                    if(commute.getLastStep() == null ) {
+                        return null;
+                    }
+                    else if(commute.getLastStep().getStepType() == Commute.Step.TYPE_WALKING) {
+                        if(new LatLngPair(commute.getLastStep().getStart().getLatLng(), currStop.getLatLng()).getDistance() <= Commute.MAX_WALKING_DISTANCE){
+                            commute.setStep(commute.getLastStepIndex(), new Commute.Step(Commute.Step.TYPE_WALKING,
+                                    commute.getLastStep().getRoute(),
                                     commute.getLastStep().getStart(),
                                     currStop));
                         }
                         else {
-                            commute.addStep(new Commute.Step(Commute.Step.TYPE_MATATU, commonRoutes.get(0), previousStop, currStop));
+                            return null;
                         }
                     }
                     else {
-                        if(commute.getLastStep() != null && commute.getLastStep().getStepType() == Commute.Step.TYPE_WALKING) {
-                            if(new LatLngPair(commute.getLastStep().getStart().getLatLng(), currStop.getLatLng()).getDistance() <= Commute.MAX_WALKING_DISTANCE){
-                                commute.setStep(commute.getLastStepIndex(), new Commute.Step(Commute.Step.TYPE_WALKING,
-                                        commute.getLastStep().getRoute(),
-                                        commute.getLastStep().getStart(),
-                                        currStop));
-                            }
-                            else {
-                                return null;
-                            }
-                        }
-                        else {
-                            commute.addStep(new Commute.Step(Commute.Step.TYPE_WALKING, null, previousStop, currStop));
-                        }
+                        commute.addStep(new Commute.Step(Commute.Step.TYPE_WALKING, null, previousStop, currStop));
                     }
                 }
             }
-            else {
-                Log.e(TAG, "The first stop in the path is not the expected one");
-                return null;
-            }
         }
         else {
+            Log.e(TAG, "The first stop in the path is not the expected one");
             return null;
         }
         return commute;
@@ -254,10 +252,8 @@ public class Path extends ProgressHandler {
 		public void run() {
 			final ArrayList<Commute> commutes = new ArrayList<Commute>();
             Log.d(TAG, "########################################");
-            Commute resultantBestCommute = getBestCommute(from);
-            if(resultantBestCommute != null) {
-                commutes.add(resultantBestCommute);
-            }
+            ArrayList<Commute> currCommutes = getBestCommute(from);
+            commutes.addAll(currCommutes);
             Log.d(TAG, "########################################");
             
             allCommutes.addAll(commutes);
