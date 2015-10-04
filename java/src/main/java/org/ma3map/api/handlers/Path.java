@@ -293,6 +293,7 @@ public class Path extends ProgressHandler {
     }
 
     private ArrayList<Route> getCommonRoutes(Stop stopA, Stop stopB) {
+        HashMap<String, ArrayList<String>> stopRoutes = new HashMap<String, ArrayList<String>>(this.stopRoutes);
         ArrayList<Route> commonRoutes = new ArrayList<Route>();
         ArrayList<String> commonRouteIds = stopRoutes.get(stopA.getId());
         commonRouteIds.retainAll(stopRoutes.get(stopB.getId()));
