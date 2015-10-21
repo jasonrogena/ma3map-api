@@ -27,6 +27,7 @@ public class Server {
     // Base URI the Grizzly HTTP server will listen on
     private static final String TAG = "ma3map.Server";
     public static final String BASE_URI = ":8080/";
+    private static final String DEFAULT_IP = "127.0.0.1";
 
     /**
      * Starts Grizzly HTTP server exposing JAX-RS resources defined in this application.
@@ -47,6 +48,10 @@ public class Server {
                 }
             }
             if(ip != null) break;
+        }
+        if(ip == null) {
+            Log.w(TAG, "Unable to get an IP Address from any of the network devices. Using the default IP Address");
+            ip = DEFAULT_IP;
         }
 
         // create a resource config that scans for JAX-RS resources and providers
