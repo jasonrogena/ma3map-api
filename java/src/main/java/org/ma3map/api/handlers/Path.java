@@ -71,8 +71,7 @@ public class Path extends ProgressHandler {
     private int bestPathThreadIndex;
     private int noFromStops;
     private int noToStops;
-    private Graph graph;
-    private final HashMap<String, ArrayList<String>> stopRoutes;
+    private final Graph graph;
     
     public Path(LatLng actualFrom, int noFromStops, LatLng actualTo, int noToStops, Graph graph, ArrayList<Route> routes, ArrayList<Stop> stops){
         this.graph = graph;
@@ -102,7 +101,6 @@ public class Path extends ProgressHandler {
             }
             stopRoutes.put(currStop.getId(), routesWithCurrStop);
         }*/
-        stopRoutes = graph.getStopRoutes();
     	
     	//get closest stops to source and destination
         Log.d(TAG, "Getting all stops");
@@ -270,30 +268,8 @@ public class Path extends ProgressHandler {
 		}
     }
 
-    /**
-     * Gets all <code>routes</code> in {@link #allCommutes} that contain the provided <code>stop</code>.
-     * <p>
-     * @param stop  The <code>stop</code> to be checked against all available <code>routes</code>
-     *              to this class
-     *
-     * @return  An ArrayList with <code>routes</code> that contain the provided <code>stop</code>
-     * @see org.ma3map.api.carriers.Route
-     * @see org.ma3map.api.carriers.Stop
-     */
-    private ArrayList<Route> getRoutesWithStop(Stop stop){
-        ArrayList<Route> stopRoutes = new ArrayList<Route>();
-
-        for(int index = 0; index < routes.size(); index++){
-            if(routes.get(index).isStopInRoute(stop)){
-                stopRoutes.add(routes.get(index));
-            }
-        }
-
-        return stopRoutes;
-    }
-
     private ArrayList<Route> getCommonRoutes(Stop stopA, Stop stopB) {
-        HashMap<String, ArrayList<String>> stopRoutes = new HashMap<String, ArrayList<String>>(this.stopRoutes);
+        HashMap<String, ArrayList<String>> stopRoutes = this.graph.getStopRoutes();
         ArrayList<Route> commonRoutes = new ArrayList<Route>();
         ArrayList<String> commonRouteIds = stopRoutes.get(stopA.getId());
         commonRouteIds.retainAll(stopRoutes.get(stopB.getId()));
