@@ -76,50 +76,6 @@ public class Server {
         server.shutdown();
     }
 
-    private static Graph buildGraph() {
-        Data dataHandler = new Data();
-        ArrayList<Stop> stops = dataHandler.getStopData();
-        ArrayList<Route> routes = dataHandler.getRouteData();
-        final HashMap<String, ArrayList<String>> stopRoutes = getStopRoutes(routes, stops);
-        Log.i(TAG, "Number of indexed stops = " + String.valueOf(stopRoutes.size()));
-        Graph graph = new Graph(routes, stops, false);
-        if(!dataHandler.fileExists(Data.BLOCK_GRAPH_CREATION)) {
-            dataHandler.createFile(Data.BLOCK_GRAPH_CREATION);
-            graph.deleteGraph();
-
-            //for each of the stops, get a list of all the routes that contain it
-            ArrayList<StopPair> stopPairs = new ArrayList<StopPair>();
-            //now compare pairs of all the stops and add them to the graph
-            int totalRels = 0;
-            int sisterRels = 0;
-            int sisterRels2 = 0;
-            for (int sIndex = 0; sIndex < stops.size(); sIndex++) {
-                Log.i(TAG, "Adding stops to graph", (sIndex + 1), stops.size());
-                Stop currStop = stops.get(sIndex);
-                if (stopRoutes.get(currStop.getId()).size() > 0) {
-                    for (int oIndex = 0; oIndex < stops.size(); oIndex++) {
-                        if (!currStop.equals(stops.get(oIndex)) && stopRoutes.get(stops.get(oIndex).getId()).size() > 0) {//make sure you dont compare a stop to itself
-                            StopPair currPair = new StopPair(currStop, stops.get(oIndex));
-                            if (!stopPairs.contains(currPair)) {
-                                stopPairs.add(currPair);
-                                //check if the two stops have at least one common route
-                                ArrayList<String> commonRouteIds = stopRoutes.get(currPair.getA().getId());
-                                commonRouteIds.retainAll(stopRoutes.get(currPair.getB().getId()));
-                                Node nodeA = graph.createNode(currPair.getA().getId());
-                                Node nodeB = graph.createNode(currPair.getB().getId());
-                                boolean result = graph.createRelationship(nodeA, nodeB, currPair.getA().getDistance(currPair.getB().getLatLng()), commonRouteIds.size());
-                            }
-                        }
-                    }
-                }
-            }
-            graph.printGraphStats();
-            dataHandler.deleteFile(Data.BLOCK_GRAPH_CREATION);
-            Log.i(TAG, "Done creating the graph");
-        }
-        return graph;
-    }
-
     private static HashMap<String, ArrayList<String>> getStopRoutes(ArrayList<Route> routes, ArrayList<Stop> stops) {
         HashMap<String, ArrayList<String>> stopRoutes = new HashMap<String, ArrayList<String>>();
         for (int sIndex = 0; sIndex < stops.size(); sIndex++) {
@@ -140,7 +96,8 @@ public class Server {
 
         @Override
         protected void configure() {
-            Graph graph = buildGraph();
+            Graph graph = new Graph();
+            graph.printGraphStats();
             bind(graph).to(Graph.class);
         }
     }

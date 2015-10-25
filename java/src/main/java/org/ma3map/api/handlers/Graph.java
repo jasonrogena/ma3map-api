@@ -27,7 +27,7 @@ import org.apache.commons.io.FileUtils;
 import org.neo4j.kernel.configuration.Config;
 import org.neo4j.tooling.GlobalGraphOperations;
 
-public class Graph implements Serializable {
+public final class Graph implements Serializable {
 
     public static final String KEY = "Graph";
     private final String GRAPH_PATH = "cache/graph.neo4j";
@@ -36,53 +36,43 @@ public class Graph implements Serializable {
     private final String NODE_LABEL_STOP = "stop";
     private final String NODE_PROPERTY_ID = "id";
     private static final String TAG = "ma3map.Graph";
-    private GraphDatabaseService graphDatabaseService;//very expensive to create, share across threads as much as possible
+    private final GraphDatabaseService graphDatabaseService;//very expensive to create, share across threads as much as possible
     private UniqueFactory.UniqueNodeFactory uniqueNodeFactory;
     private Schema schema;
-    private HashMap<String, Node> nodes;
-    private HashMap<String, Stop> stopMap;
-    private ArrayList<Route> routes;
+    private final HashMap<String, Node> nodes;
+    private final HashMap<String, Stop> stopMap;
+    private final ArrayList<Route> routes;
+    private final ArrayList<Stop> stops;
     private final HashMap<String, ArrayList<String>> stopRoutes;
+    private final Data dataHandler;
 
     private enum RelTypes implements RelationshipType {
         ARE_SISTERS,
         ARE_NEIGHBOURS
     }
 
-    public Graph(ArrayList<Route> routes, ArrayList<Stop> stops, boolean readOnly) {
-        if(readOnly == false) deleteGraph();
+    public Graph() {
         GraphDatabaseFactory graphDbFactory = new GraphDatabaseFactory();
         GraphDatabaseBuilder databaseBuilder = graphDbFactory.newEmbeddedDatabaseBuilder(GRAPH_PATH)
                 .setConfig(GraphDatabaseSettings.allow_store_upgrade, "true")
                 .setConfig( GraphDatabaseSettings.pagecache_memory, "256M")
                 .setConfig(GraphDatabaseSettings.string_block_size, "60")
                 .setConfig(GraphDatabaseSettings.array_block_size, "300");
-        if(readOnly == true){
-            databaseBuilder.setConfig(GraphDatabaseSettings.read_only, "true");
-        }
-        else {
-            databaseBuilder.setConfig(GraphDatabaseSettings.read_only, "false");
-            databaseBuilder.setConfig(GraphDatabaseSettings.batched_writes, "true");
-            databaseBuilder.setConfig(GraphDatabaseSettings.dump_configuration, "true");
-        }
+        databaseBuilder.setConfig(GraphDatabaseSettings.read_only, "false");
+        databaseBuilder.setConfig(GraphDatabaseSettings.batched_writes, "true");
+        databaseBuilder.setConfig(GraphDatabaseSettings.dump_configuration, "true");
         graphDatabaseService = databaseBuilder.newGraphDatabase();
 
         nodes = new HashMap<String, Node>();
-
-        if(readOnly == false) {
-            setIndexProperty();
-            initUniqueFactory();
-        }
-        else {
-            printGraphStats();
-            loadNodes();
-        }
-        this.routes = routes;
+        setIndexProperty();
+        initUniqueFactory();
+        this.dataHandler = new Data();
+        this.routes = dataHandler.getRouteData();
+        this.stops =  dataHandler.getStopData();
         stopMap = new HashMap<String, Stop>();
         for(int index = 0; index < stops.size(); index++) {
             stopMap.put(stops.get(index).getId(), stops.get(index));
         }
-
         this.stopRoutes = new HashMap<String, ArrayList<String>>();
         for (int sIndex = 0; sIndex < stops.size(); sIndex++) {
             Log.i(TAG, "Reindexing stops and routes", (sIndex + 1), stops.size());
@@ -107,6 +97,39 @@ public class Graph implements Serializable {
                 graphDatabaseService.shutdown();
             }
         } );
+        buildGraph();
+    }
+
+    private void buildGraph() {
+        if(!dataHandler.fileExists(Data.BLOCK_GRAPH_CREATION)) {
+            dataHandler.createFile(Data.BLOCK_GRAPH_CREATION);
+            deleteGraph();
+            //for each of the stops, get a list of all the routes that contain it
+            ArrayList<StopPair> stopPairs = new ArrayList<StopPair>();
+            //now compare pairs of all the stops and add them to the graph
+            for (int sIndex = 0; sIndex < stops.size(); sIndex++) {
+                Log.i(TAG, "Adding stops to graph", (sIndex + 1), stops.size());
+                Stop currStop = stops.get(sIndex);
+                if (stopRoutes.get(currStop.getId()).size() > 0) {
+                    for (int oIndex = 0; oIndex < stops.size(); oIndex++) {
+                        if (!currStop.equals(stops.get(oIndex)) && stopRoutes.get(stops.get(oIndex).getId()).size() > 0) {//make sure you dont compare a stop to itself
+                            StopPair currPair = new StopPair(currStop, stops.get(oIndex));
+                            if (!stopPairs.contains(currPair)) {
+                                stopPairs.add(currPair);
+                                //check if the two stops have at least one common route
+                                ArrayList<String> commonRouteIds = stopRoutes.get(currPair.getA().getId());
+                                commonRouteIds.retainAll(stopRoutes.get(currPair.getB().getId()));
+                                Node nodeA = createNode(currPair.getA().getId());
+                                Node nodeB = createNode(currPair.getB().getId());
+                                boolean result = createRelationship(nodeA, nodeB, currPair.getA().getDistance(currPair.getB().getLatLng()), commonRouteIds.size());
+                            }
+                        }
+                    }
+                }
+            }
+            dataHandler.deleteFile(Data.BLOCK_GRAPH_CREATION);
+            Log.i(TAG, "Done creating the graph");
+        }
     }
 
     public HashMap<String, ArrayList<String>> getStopRoutes() {
@@ -114,7 +137,6 @@ public class Graph implements Serializable {
     }
 
     private void loadNodes() {
-        nodes = new HashMap<String, Node>();
         Transaction tx = graphDatabaseService.beginTx();
         try {
             for(Node currNode : GlobalGraphOperations.at(graphDatabaseService).getAllNodes()) {
@@ -134,7 +156,7 @@ public class Graph implements Serializable {
 
     }
     
-    public boolean deleteGraph(){
+    private boolean deleteGraph(){
         File graph = new File(GRAPH_PATH);
         if(graph.exists()){
             for(File file: graph.listFiles()) {
@@ -207,7 +229,7 @@ public class Graph implements Serializable {
         }
     }
 
-    public Node createNode(String id) {
+    private Node createNode(String id) {
         Node result = null;
         Transaction tx = graphDatabaseService.beginTx();
         try {
@@ -284,7 +306,7 @@ public class Graph implements Serializable {
     	return null;
     }
 
-    public boolean createRelationship(Node node1, Node node2, double distance, int noSharedRoutes) {
+    private boolean createRelationship(Node node1, Node node2, double distance, int noSharedRoutes) {
         boolean result = false;
         Transaction tx = graphDatabaseService.beginTx();
         try {
