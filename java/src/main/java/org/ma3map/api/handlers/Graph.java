@@ -52,6 +52,7 @@ public final class Graph implements Serializable {
     }
 
     public Graph() {
+        deleteGraph();
         GraphDatabaseFactory graphDbFactory = new GraphDatabaseFactory();
         GraphDatabaseBuilder databaseBuilder = graphDbFactory.newEmbeddedDatabaseBuilder(GRAPH_PATH)
                 .setConfig(GraphDatabaseSettings.allow_store_upgrade, "true")
@@ -103,7 +104,7 @@ public final class Graph implements Serializable {
     private void buildGraph() {
         if(!dataHandler.fileExists(Data.BLOCK_GRAPH_CREATION)) {
             dataHandler.createFile(Data.BLOCK_GRAPH_CREATION);
-            deleteGraph();
+            //deleteGraph();
             //for each of the stops, get a list of all the routes that contain it
             ArrayList<StopPair> stopPairs = new ArrayList<StopPair>();
             //now compare pairs of all the stops and add them to the graph
